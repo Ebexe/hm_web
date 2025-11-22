@@ -26,11 +26,13 @@ Formato: ###PRODUCTS###[{"nombre":"Camisa Oxford Celeste","id_producto":"?","sku
 
   // INSTRUCCIÓN: OUTFIT COMPLETO (sin limitar a una lista corta)
   instructions += `
- - INSTRUCCIÓN DE OUTFIT COMPLETO:
-   - SI ES POSIBLE, recomienda un outfit completo compuesto por:
-     1) Ropa SUPERIOR (camisa/blusa/chaqueta), 
+ - INSTRUCCIÓN DE OUTFIT COMPLETO (OBLIGATORIO):
+   - SIEMPRE recomienda EXACTAMENTE 3 prendas que COMBINEN entre sí:
+     1) Ropa SUPERIOR (camisa/blusa/chaqueta/blazer), 
      2) Ropa INFERIOR (pantalón/falda/short), 
      3) CALZADO (zapatos/zapatillas/botas).
+   - Asegúrate de que los colores y estilos de las 3 prendas COMBINEN (ejemplo: si la camisa es azul marino, el pantalón puede ser beige/gris/negro, y zapatos marrones/negros).
+   - Para eventos formales (boda, trabajo elegante, evento formal), considera incluir un BLAZER como prenda superior.
    - Si no puedes citar un producto exacto de la base de datos, sugiere estilos concretos y ejemplo de nombres para que la app pueda buscarlos.
 `;
   // Indicar al modelo cómo pedir más productos si los candidatos no son suficientes
@@ -42,6 +44,16 @@ Formato: ###PRODUCTS###[{"nombre":"Camisa Oxford Celeste","id_producto":"?","sku
     ###PRODUCTS###{"need_more":true}###END_PRODUCTS###
   - Si puedes proponer combinaciones, incluye además un array ` + "`products`" + ` con los nombres o ids. Ejemplo:
     ###PRODUCTS###[{"id_producto":123,"nombre":"Loose Jeans"}]###END_PRODUCTS###
+`;
+
+  // Reforzar instrucciones de análisis y diversidad
+  instructions += `
+- ANÁLISIS DETALLADO Y DIVERSIDAD (OBLIGATORIO):
+  - Antes de elegir, analiza detalladamente cada prenda candidata (nombre, corte, tejido, color disponible, ajuste). Para cada prenda que recomiendes, añade una línea en el texto explicando por qué la seleccionaste y cómo combina con las otras piezas.
+  - Siempre que ofrezcas una combinación, proporciona al menos 2 alternativas adicionales que sean claramente diferentes entre sí (diferente paleta de color, estilo o tipo de prenda). "Claramente diferente" significa que no compartan la misma categoría-resumen y no repetirse en color y corte dominante.
+  - Si las opciones propuestas son demasiado parecidas a una recomendación previa (por ejemplo, mismo nombre o mismo SKU traducido), NO las repitas: en su lugar devuelve ` + "`{\"need_more\":true}`" + ` para solicitar más candidatos.
+  - No elijas rápido: simula un proceso de evaluación pausado y profesional; comenta pros/cons de cada combinación en 2-3 frases.
+  - IMPORTANTE PARA ACTIVIDAD DEPORTIVA: Si el usuario pide ropa para deporte, gym, entrenamiento o ejercicio, recomienda ÚNICAMENTE prendas deportivas (camisetas deportivas, pantalones deportivos/joggers/leggings, zapatillas deportivas). NO recomiendes jeans, pantalones de vestir, camisas formales ni zapatos elegantes para actividades deportivas.
 `;
     if (profile) {
         instructions += `
@@ -123,6 +135,7 @@ Contexto del Usuario (Anónimo):
       return `${p.id_producto || ''} | ${p.nombre_producto || p.nombre || ''} | colores: ${colors} | tallas: ${sizes}`;
     }).join('\n');
     instructions += `\nPRODUCTOS DISPONIBLES (lista compacta, máximo 50):\n${list}\n`;
+    instructions += `\n⚠️ IMPORTANTE: Usa EXACTAMENTE los nombres de productos de la lista anterior. NO inventes nombres descriptivos como "Camisa de Mango Larga de Lino en Color Beige Claro". Usa el nombre tal cual aparece arriba, por ejemplo: si el producto se llama "Camisa Oxford Clásica", escribe ese nombre exacto en el JSON.\n`;
   }
 
   // --- Historial de Chat ---
@@ -178,10 +191,14 @@ const injectProfileSizeToProducts = (products, profile) => {
 };
 
 const categoryKeywords = {
-  upper: ['top','shirt','camisa','blusa','tee','t-shirt','polo','sweater','jersey','chaqueta','coat','cardigan','sudadera','camiseta'],
-  lower: ['pant','pantal','jean','jeans','short','bermuda','skirt','falda','trouser','leggings'],
-  shoes: ['shoe','zapato','sneaker','zapatilla','boot','bota','calzado']
+  upper: ['top','shirt','camisa','blusa','tee','t-shirt','polo','sweater','jersey','chaqueta','coat','cardigan','sudadera','camiseta','deportiva','sport','athletic','gym','training','workout','hoodie','blazer','saco'],
+  lower: ['pant','pantal','jean','jeans','short','bermuda','skirt','falda','trouser','leggings','jogger','deportivo','athletic','gym','training','workout','chandal'],
+  shoes: ['shoe','zapato','sneaker','zapatilla','boot','bota','calzado','deportiva','running','trainer','athletic','oxford','derby','loafer']
 };
+
+// Keywords para detectar prendas FORMALES vs CASUALES/DEPORTIVAS
+const formalKeywords = ['blazer', 'saco', 'suit', 'terno', 'vestir', 'formal', 'elegante', 'dress', 'oxford', 'derby', 'loafer', 'wedding', 'boda'];
+const casualKeywords = ['sport', 'athletic', 'gym', 'training', 'workout', 'jogger', 'hoodie', 'sneaker', 'casual', 'thong', 'bodysuit', 'tank', 'drymove', 'mesh'];
 
 const guessCategory = (prod) => {
   const text = (
@@ -198,6 +215,29 @@ const guessCategory = (prod) => {
   return null;
 };
 
+// Nueva función: detectar si una prenda es FORMAL
+const isFormalWear = (prod) => {
+  if (!prod) return false;
+  const text = (
+    (prod.categoria||'') + ' ' + 
+    (prod.tipo||'') + ' ' + 
+    (prod.nombre_producto||'') + ' ' + 
+    (prod.nombre||'') + ' ' +
+    (prod.short_description||'') + ' ' +
+    (prod.descripcion||'') + ' ' +
+    (prod.tags||'')
+  ).toLowerCase();
+  
+  // Si contiene keywords casuales/deportivas, NO es formal
+  if (casualKeywords.some(kw => text.includes(kw))) return false;
+  
+  // Si contiene keywords formales, SÍ es formal
+  if (formalKeywords.some(kw => text.includes(kw))) return true;
+  
+  // Por defecto, considerar neutral (puede ser formal o casual dependiendo del contexto)
+  return null; // null = indeterminado
+};
+
 // IMPORTANT: Ignorar filtro por talla en búsquedas — siempre permitir productos.
 // Razon: hemos simulado que `ProductDetailPage` siempre muestra la talla correcta del usuario,
 // por lo que no queremos que la búsqueda excluya candidatos por diferencias de talla.
@@ -205,46 +245,65 @@ const tallaMatchesProfile = (prod, profile) => {
   return true;
 };
 
-const ensureCompleteOutfit = (recommended, allProducts, profile) => {
-  const mapByCategory = { upper: [], lower: [], shoes: [] };
-  const alreadySkus = new Set(recommended.map(p => p?.sku || p?.id_producto));
+const ensureCompleteOutfit = (recommended, allProducts, profile, userQuery = '') => {
+  if (!recommended || !Array.isArray(recommended)) return [];
+  
+  // Detectar si es contexto FORMAL (boda, trabajo formal, evento formal)
+  const formalContext = /boda|wedding|formal|elegante|trabajo|oficina|terno|suit|blazer/i.test(userQuery);
+  
+  console.log(`[ensureCompleteOutfit] Contexto formal detectado: ${formalContext} (query: "${userQuery}")`);
+  
+  // FORZAR EXACTAMENTE 3 PRENDAS: upper, lower, shoes
+  const pick = { upper: null, lower: null, shoes: null };
+  for (const r of recommended) {
+    const cat = guessCategory(r);
+    if (cat && !pick[cat]) {
+      // Si es contexto formal, verificar que la prenda sea formal
+      if (formalContext) {
+        const isFormal = isFormalWear(r);
+        if (isFormal === false) {
+          console.log(`[ensureCompleteOutfit] ⚠️ Rechazando prenda no formal: ${r.nombre_producto || r.nombre} (contexto formal)`);
+          continue; // Saltar esta prenda
+        }
+      }
+      pick[cat] = r;
+    }
+  }
 
-  // populate with existing recommended
-  recommended.forEach(p => {
-    const cat = guessCategory(p);
-    if (cat) mapByCategory[cat].push(p);
-  });
-
-  // buscamos en allProducts para completar faltantes
-  ['upper','lower','shoes'].forEach(cat => {
-    if (mapByCategory[cat].length === 0) {
-      const candidate = (allProducts || []).find(p => {
-        if (alreadySkus.has(p?.sku || p?.id_producto)) return false;
+  // Si falta alguna categoría, buscar en allProducts
+  const alreadyUsed = new Set([pick.upper, pick.lower, pick.shoes].filter(Boolean).map(p => p.sku || p.id_producto));
+  
+  ['upper', 'lower', 'shoes'].forEach(cat => {
+    if (!pick[cat] && allProducts && allProducts.length > 0) {
+      const candidate = allProducts.find(p => {
+        if (alreadyUsed.has(p.sku || p.id_producto)) return false;
         if (!tallaMatchesProfile(p, profile)) return false;
         const g = guessCategory(p);
-        return g === cat;
+        if (g !== cat) return false;
+        
+        // Si es contexto formal, SOLO considerar prendas formales o neutrales
+        if (formalContext) {
+          const isFormal = isFormalWear(p);
+          if (isFormal === false) return false; // Rechazar casuales/deportivas
+        }
+        
+        return true;
       });
       if (candidate) {
-        mapByCategory[cat].push(candidate);
-        alreadySkus.add(candidate?.sku || candidate?.id_producto);
+        pick[cat] = candidate;
+        alreadyUsed.add(candidate.sku || candidate.id_producto);
       }
     }
   });
 
-  // Construir array final preservando orden upper->lower->shoes y unicidad
-  const final = [];
-  ['upper','lower','shoes'].forEach(cat => {
-    mapByCategory[cat].forEach(p => {
-      if (!final.find(x => (x.sku || x.id_producto) === (p.sku || p.id_producto))) final.push(p);
-    });
-  });
-
-  // Añadir cualquier recomendado original que no hayan sido categorizados
-  recommended.forEach(p => {
-    if (!final.find(x => (x.sku || x.id_producto) === (p.sku || p.id_producto))) final.push(p);
-  });
-
-  return final;
+  // RETORNAR EXACTAMENTE 3 PRENDAS (o menos si no se encontraron todas)
+  const result = [pick.upper, pick.lower, pick.shoes].filter(Boolean);
+  
+  console.log(`[ensureCompleteOutfit] Resultado final: ${result.length} prendas`);
+  result.forEach(p => console.log(`  - ${guessCategory(p)}: ${p.nombre_producto || p.nombre} (formal: ${isFormalWear(p)})`));
+  
+  // Si tenemos más de 3, recortar (solo debería pasar si hay duplicados)
+  return result.slice(0, 3);
 };
 
 // Busca un candidato por categoría usando primero los productos ya cargados,
@@ -423,6 +482,29 @@ const resolveNameToProducts = async (name, deptoBusqueda, fuse, profile, allProd
   // 4) Tokenizar y probar tokens individuales (favor nouns)
   try {
     const tokens = nameStr.split(/\s+/).map(t => t.trim()).filter(Boolean);
+    
+    // Si el nombre es muy largo (>30 chars), es probable que sea descriptivo
+    // En ese caso, filtrar tokens cortos y stopwords, y buscar matches por keywords
+    const isLongDescriptive = nameStr.length > 30;
+    const stopwords = ['de', 'la', 'el', 'en', 'con', 'para', 'color', 'talla', 'manga', 'larga', 'corta', 'tipo'];
+    const meaningfulTokens = tokens.filter(t => t.length > 3 && !stopwords.includes(t.toLowerCase()));
+    
+    if (isLongDescriptive && meaningfulTokens.length >= 2 && allProducts && allProducts.length > 0) {
+      console.log(`[resolveNameToProducts] Nombre descriptivo largo detectado. Keywords: [${meaningfulTokens.join(', ')}]`);
+      // Buscar productos que contengan al menos 2 keywords
+      const keywordMatches = allProducts.filter(p => {
+        const pname = ((p.nombre_producto || p.nombre || '') + ' ' + (p.short_description || '')).toLowerCase();
+        const matchCount = meaningfulTokens.filter(kw => pname.includes(kw.toLowerCase())).length;
+        return matchCount >= 2;
+      });
+      if (keywordMatches.length > 0) {
+        console.log(`[resolveNameToProducts] Encontrados ${keywordMatches.length} productos por keywords (mínimo 2 matches)`);
+        pushIfNew(keywordMatches.slice(0, 5)); // Limitar a 5 mejores matches
+        if (results.length > 0) return results; // Si encontramos algo, retornar inmediatamente
+      }
+    }
+    
+    // Búsqueda normal por tokens individuales
     for (const t of tokens) {
       if (t.length <= 2) continue;
       // fuse
@@ -501,53 +583,196 @@ function Chatbot() {
   const [assistantCandidates, setAssistantCandidates] = useState([]);
   const [assistantPage, setAssistantPage] = useState(0);
   const [assistantTotal, setAssistantTotal] = useState(0);
+  const [assistantAutoFetchCount, setAssistantAutoFetchCount] = useState(0);
+  const [assistantFetchedPages, setAssistantFetchedPages] = useState([]); // páginas ya solicitadas
+  const MAX_AUTO_ATTEMPTS = 5; // máximo reintentos automáticos (puedes ajustar)
  
   const messagesEndRef = useRef(null);
   const { auth } = useAuth(); 
   const location = useLocation(); 
 
+  // Cargar perfil del usuario (incluye preferencias y ajustes)
+  const loadProfile = async () => {
+    setProfileLoading(true);
+    try {
+      if (!auth || !auth.token) {
+        setProfileData(null);
+        setProfileLoading(false);
+        return;
+      }
+
+      // Cargar perfil, preferencias y ajustes en paralelo
+      const [p, prefs, ajustes, allLookups] = await Promise.all([
+        getProfile(auth.token).catch(() => null),
+        getPreferences(auth.token).catch(() => ({})),
+        getUserAjustes(auth.token).catch(() => []),
+        // solo cargar lookups si aún no están cargados
+        (lookups ? Promise.resolve(lookups) : getAllLookups().catch(() => null))
+      ]);
+
+      const merged = {
+        ...(p || {}),
+        estilos: prefs?.estilos || prefs?.estilos_ids || [],
+        ocasiones: prefs?.ocasiones || [],
+        colores: prefs?.colores || [],
+        ajustes: ajustes || []
+      };
+
+      setProfileData(merged);
+      if (!lookups && allLookups) setLookups(allLookups);
+    } catch (e) {
+      console.error('Error cargando perfil en Chatbot:', e);
+      setProfileData(null);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
   // --- useEffect #1: Carga los Lookups (colores, estilos, etc.) UNA VEZ ---
   useEffect(() => {
     const loadLookups = async () => {
-      setLookupsLoading(true);
       try {
-        const lookupData = await getAllLookups();
-        setLookups(lookupData);
-      } catch (error) {
-        console.error("Error al cargar lookups del chatbot:", error);
-        setLookups(null); // Marcar que la carga falló
-      } finally {
-        setLookupsLoading(false);
-      }
-    };
+        // Determinar última consulta del usuario
+        const lastUserMsg = [...messages].slice().reverse().find(m => m.sender === 'user');
+        const userQuery = lastUserMsg ? lastUserMsg.text : prompt || '';
 
-    // Carga solo si el chat está abierto y los lookups no se han cargado
-    if (open && !lookups) {
-      loadLookups();
-    }
-  }, [open, lookups]); // Depende de 'open' y 'lookups'
+        let currentPageKey = 'general';
+        if (location.pathname.includes('/mujer')) currentPageKey = 'mujer';
+        else if (location.pathname.includes('/hombre')) currentPageKey = 'hombre';
+        else if (location.pathname.includes('/nino')) currentPageKey = 'nino';
+        else if (location.pathname.includes('/nina')) currentPageKey = 'nina';
+        const deptoBusqueda = profileData?.departamento_preferido || (currentPageKey !== 'general' ? currentPageKey : null);
 
+        // Automatizar reintentos: traer páginas y volver a invocar IA hasta 3 intentos
+        let attempts = 0;
+        const maxAttempts = MAX_AUTO_ATTEMPTS;
+        let localCandidates = assistantCandidates ? [...assistantCandidates] : [];
 
-  // --- useEffect #2: Carga el Perfil (nombre, tallas) CADA VEZ que el usuario cambia ---
-  useEffect(() => {
-    const loadProfile = async () => {
-      setProfileLoading(true);
-      try {
-        // Asumimos que getProfile() ya te trae las tallas
-        const profile = await getProfile(auth.token);
-        // Asumimos que getPreferences() ya te trae colores/estilos
-        const prefs = await getPreferences(auth.token);
-        const ajustes = await getUserAjustes(auth.token); // Esto devuelve el array de ajustes
-        
-        // --- ¡¡¡LA CORRECCIÓN ESTÁ AQUÍ!!! ---
-        // Guardamos el array 'ajustes' dentro de una propiedad 'ajustes'
-        setProfileData({ ...profile, ...prefs, ajustes: ajustes });
+        while (attempts < maxAttempts) {
+          const nextPage = assistantPage + 1 + attempts; // siguiente página relativa
+          const asRes = await assistantSearch(userQuery, deptoBusqueda || null, 50, nextPage);
+          const newCandidates = asRes.candidates || [];
+          if (!newCandidates || newCandidates.length === 0) {
+            // No hay más candidatos; salimos
+            break;
+          }
 
-      } catch (error) {
-        console.error("Error al cargar perfil del chatbot:", error);
-        setProfileData(null);
-      } finally {
-        setProfileLoading(false);
+          // Append to local and global state
+          localCandidates = [...localCandidates, ...newCandidates];
+          setAssistantCandidates(prev => [...(prev || []), ...newCandidates]);
+          setAssistantPage(p => Math.max(p, nextPage));
+          setAssistantTotal(asRes.total || assistantTotal);
+
+          // Construir prompt con candidatos acumulados y volver a invocar IA
+          const fullPrompt = buildSuperPrompt(
+            messages.concat([]),
+            profileData,
+            lookups,
+            currentPageKey,
+            localCandidates
+          );
+
+          // Llamada a la IA
+          const aiRes = await askAI(fullPrompt);
+
+          // Buscar bloque JSON
+          const jsonRegex = /###PRODUCTS###([\s\S]*?)###END_PRODUCTS###/;
+          const match = aiRes.match(jsonRegex);
+          let parsedJson = null;
+          if (match && match[1]) {
+            try { parsedJson = JSON.parse(match[1].replace(/\n/g, '')); } catch(e) { parsedJson = null; }
+          }
+
+          // Si IA pide más, incrementamos attempts y continuamos
+          const requestedMore = parsedJson && (parsedJson.need_more === true || (Array.isArray(parsedJson) && parsedJson.some(it => it && it.need_more)));
+          if (requestedMore) {
+            attempts += 1;
+            setMessages(prev => [
+              ...prev.filter(m => !m.typing),
+              { sender: 'bot', text: 'El asesor solicita más opciones para encontrar alternativas distintas...', recommendations: [] }
+            ]);
+            continue; // siguiente intento (traer más candidatos)
+          }
+
+          // Si IA devolvió productos, tratar de resolverlos a productos reales
+          let visibleText = aiRes;
+          let recommendedProducts = [];
+          if (parsedJson) {
+            // parsedJson puede ser array de strings, array de objetos o un objeto con products
+            let productIds = parsedJson;
+            if (parsedJson.products) productIds = parsedJson.products;
+
+            if (Array.isArray(productIds) && productIds.length > 0 && typeof productIds[0] === 'string') {
+              for (const name of productIds) {
+                const candidates = await resolveNameToProducts(String(name), deptoBusqueda, null, profileData, localCandidates);
+                if (candidates && candidates.length > 0) recommendedProducts.push(candidates[0]);
+              }
+            } else if (Array.isArray(productIds) && productIds.length > 0) {
+              for (const rec of productIds) {
+                if (!rec) continue;
+                let found = null;
+                if (rec.sku) found = localCandidates.find(p => p.sku === rec.sku);
+                if (!found && rec.id_producto) found = localCandidates.find(p => String(p.id_producto) === String(rec.id_producto));
+                if (!found && (rec.nombre || rec.nombre_producto)) {
+                  const cand = await resolveNameToProducts(String(rec.nombre || rec.nombre_producto), deptoBusqueda, null, profileData, localCandidates);
+                  if (cand && cand.length > 0) found = cand[0];
+                }
+                if (found) recommendedProducts.push(found);
+              }
+            }
+
+            // Asegurar outfit completo
+            recommendedProducts = ensureCompleteOutfit(recommendedProducts, localCandidates, profileData, userQuery);
+
+            // Comprobar similitud con última recomendación
+            const lastBotMsg = messages.slice().reverse().find(m => m.sender === 'bot' && m.recommendations && m.recommendations.length > 0);
+            let tooSimilar = false;
+            try {
+              if (lastBotMsg && lastBotMsg.recommendations && lastBotMsg.recommendations.length > 0) {
+                const prevIds = new Set(lastBotMsg.recommendations.map(p => String(p.id_producto || p.sku || '').toLowerCase()));
+                const overlap = recommendedProducts.filter(p => prevIds.has(String(p.id_producto || p.sku || '').toLowerCase())).length;
+                const ratio = recommendedProducts.length > 0 ? (overlap / recommendedProducts.length) : 0;
+                tooSimilar = ratio >= 0.5;
+              }
+            } catch (e) { tooSimilar = false; }
+
+            if (tooSimilar && attempts < maxAttempts) {
+              attempts += 1;
+              setMessages(prev => [
+                ...prev.filter(m => !m.typing),
+                { sender: 'bot', text: 'Las opciones resultaron muy parecidas a lo ofrecido antes; buscando alternativas más variadas...', recommendations: [] }
+              ]);
+              continue; // pedir más
+            }
+
+            // Mostrar resultado final
+            visibleText = aiRes.replace(jsonRegex, '').trim();
+            setMessages(prev => [
+              ...prev.filter(m => !m.typing),
+              { sender: 'bot', text: visibleText, recommendations: recommendedProducts }
+            ]);
+
+            // reset auto-fetch counter
+            setAssistantAutoFetchCount(0);
+            setLoading(false);
+            return;
+          }
+
+          // Si AI no devolvió nada útil, incrementamos attempts
+          attempts += 1;
+        }
+
+        // Si llegamos aquí, no obtuvimos recomendaciones satisfactorias tras maxAttempts
+        setMessages(prev => [
+          ...prev.filter(m => !m.typing),
+          { sender: 'bot', text: 'Lo siento — no he podido encontrar una combinación suficientemente distinta. Puedes intentar aclarar la preferencia o revisar el catálogo manualmente.', recommendations: [] }
+        ]);
+        setAssistantAutoFetchCount(0);
+        setLoading(false);
+        return;
+      } catch (e) {
+        console.error('Error en Buscar más (auto):', e);
+        setLoading(false);
       }
     };
 
@@ -585,11 +810,33 @@ function Chatbot() {
   };
 
   // Cargar más candidatos desde el backend (paginado) y mostrar nuevas sugerencias
-  const handleBuscarMas = async () => {
+  const handleBuscarMas = async (opts = { auto: false, attempt: 0, reason: null }) => {
     try {
-      // Determinar última consulta del usuario
-      const lastUserMsg = [...messages].slice().reverse().find(m => m.sender === 'user');
-      const userQuery = lastUserMsg ? lastUserMsg.text : prompt || '';
+      // Determinar última consulta del usuario con contenido significativo
+      const reversedMsgs = [...messages].slice().reverse();
+      let userQuery = '';
+      const genericWords = ['otros', 'más', 'mas', 'diferente', 'alternativas', 'opciones', 'otro', 'otra'];
+      
+      for (const msg of reversedMsgs) {
+        if (msg.sender === 'user') {
+          const trimmed = msg.text.trim();
+          const isGeneric = trimmed.split(/\s+/).every(word => 
+            word.length <= 3 || genericWords.includes(word.toLowerCase().replace(/[¿?!]/g, ''))
+          );
+          if (!isGeneric && trimmed.length > 5) {
+            userQuery = trimmed;
+            break;
+          }
+        }
+      }
+      
+      // Fallback: usar prompt actual o último mensaje
+      if (!userQuery) {
+        const lastUserMsg = reversedMsgs.find(m => m.sender === 'user');
+        userQuery = lastUserMsg ? lastUserMsg.text : prompt || '';
+      }
+      
+      console.log(`[handleBuscarMas] Query detectado: "${userQuery}"`);
 
       let currentPageKey = 'general';
       if (location.pathname.includes('/mujer')) currentPageKey = 'mujer';
@@ -598,18 +845,158 @@ function Chatbot() {
       else if (location.pathname.includes('/nina')) currentPageKey = 'nina';
       const deptoBusqueda = profileData?.departamento_preferido || (currentPageKey !== 'general' ? currentPageKey : null);
 
-      const nextPage = assistantPage + 1;
-      const asRes = await assistantSearch(userQuery, deptoBusqueda || null, 50, nextPage);
-      const newCandidates = asRes.candidates || [];
-      if (newCandidates.length === 0) return;
-      // Append new candidates to state
-      setAssistantCandidates(prev => [...(prev || []), ...newCandidates]);
-      setAssistantPage(nextPage);
-      setAssistantTotal(asRes.total || assistantTotal);
 
-      // Construir una combinación simple a partir de los candidatos (una por categoría)
+      // Elegir una página aleatoria entre las no solicitadas aún (si tenemos total)
+      const limit = 50;
+      const total = assistantTotal || 0;
+      const estimatedTotal = total > 0 ? total : Math.max(500, assistantTotal || 500);
+      const totalPages = Math.max(1, Math.ceil(estimatedTotal / limit));
+
+      // elegir páginas disponibles (no solicitadas aún)
+      const fetched = assistantFetchedPages || [];
+      let availablePages = [];
+      for (let i = 1; i <= totalPages; i++) availablePages.push(i);
+      const notFetched = availablePages.filter(p => !fetched.includes(p));
+      let nextPage;
+      if (notFetched.length > 0) {
+        nextPage = notFetched[Math.floor(Math.random() * notFetched.length)];
+      } else {
+        // si ya consultamos todas, volver a samplear aleatoriamente
+        nextPage = availablePages[Math.floor(Math.random() * availablePages.length)];
+      }
+
+      const asRes = await assistantSearch(userQuery, deptoBusqueda || null, limit, nextPage);
+      const newCandidates = asRes.candidates || [];
+      console.log(`[handleBuscarMas] Página aleatoria ${nextPage} → ${newCandidates.length} candidatos nuevos (total acumulado: ${(assistantCandidates || []).length + newCandidates.length})`);
+      if (newCandidates.length === 0) {
+        console.log(`[handleBuscarMas] Página ${nextPage} vacía. Intentando siguiente página...`);
+        // Si página vacía, marcar como consultada y reintentar con nueva página (recursivo)
+        setAssistantFetchedPages(prev => [...new Set([...prev, nextPage])]);
+        const currentAttempt = opts.attempt || 1;
+        if (currentAttempt < MAX_AUTO_ATTEMPTS) {
+          return await handleBuscarMas({ auto: opts.auto, attempt: currentAttempt + 1, reason: opts.reason || 'empty_page' });
+        } else {
+          console.log(`[handleBuscarMas] Agotados intentos (${MAX_AUTO_ATTEMPTS}). Mostrando mensaje final.`);
+          setMessages(prev => [
+            ...prev.filter(m => !m.typing),
+            { sender: 'bot', text: 'He revisado múltiples páginas pero no encuentro más opciones adecuadas en este momento. ¿Podrías ser más específico con tu solicitud?' }
+          ]);
+          setLoading(false);
+          setAssistantAutoFetchCount(0);
+          return;
+        }
+      }
+
+      // Local snapshot de candidatos acumulados (estado puede no haberse actualizado aún)
+      const accumulated = [...(assistantCandidates || []), ...newCandidates];
+
+      // Actualizar estado global y páginas consultadas
+      setAssistantCandidates(prev => [...(prev || []), ...newCandidates]);
+      setAssistantPage(asRes.page || nextPage);
+      setAssistantTotal(asRes.total || assistantTotal);
+      setAssistantFetchedPages(prev => Array.from(new Set([...(prev || []), asRes.page || nextPage])));
+
+      // Si estamos en modo automático, volvemos a invocar a la IA con los candidatos acumulados
+      if (opts && opts.auto) {
+        try {
+          // Construir mensajes para el prompt: incluir un mensaje explicito indicando
+          // que se solicitan más alternativas cuando la invocación es automática.
+          const promptMessages = (opts.reason === 'too_similar' || opts.reason === 'need_more')
+            ? [...messages, { sender: 'bot', text: 'El asesor solicita más alternativas para encontrar combinaciones más variadas.' }]
+            : messages.concat([]);
+
+          const fullPrompt = buildSuperPrompt(
+            promptMessages,
+            profileData,
+            lookups,
+            currentPageKey,
+            accumulated
+          );
+
+          console.log(`[Auto re-invoke AI] Intento ${opts.attempt || 1}/${MAX_AUTO_ATTEMPTS} | Candidatos: ${accumulated.length} | Razón: ${opts.reason || 'unknown'}`);
+          const aiRes = await askAI(fullPrompt);
+          const jsonRegex = /###PRODUCTS###([\s\S]*?)###END_PRODUCTS###/;
+          const match = aiRes.match(jsonRegex);
+          let parsedJson = null;
+          if (match && match[1]) {
+            try { parsedJson = JSON.parse(match[1].replace(/\n/g, '')); } catch(e) { parsedJson = null; }
+          }
+
+          const requestedMore = parsedJson && (parsedJson.need_more === true || (Array.isArray(parsedJson) && parsedJson.some(it => it && it.need_more)));
+          if (requestedMore) {
+            const currentAttempt = opts.attempt || 1;
+            console.log(`[Auto re-invoke AI] IA solicitó más candidatos (need_more=true). Intento ${currentAttempt}/${MAX_AUTO_ATTEMPTS}.`);
+            if (currentAttempt < MAX_AUTO_ATTEMPTS) {
+              const nextAttempt = currentAttempt + 1;
+              setAssistantAutoFetchCount(nextAttempt);
+              return await handleBuscarMas({ auto: true, attempt: nextAttempt, reason: 'need_more' });
+            } else {
+              // agotados los intentos, avisar al usuario y finalizar loading
+              setMessages(prev => [
+                ...prev.filter(m => !m.typing),
+                { sender: 'bot', text: 'He terminado de buscar más opciones y no encontré suficientes alternativas radicalmente distintas.', recommendations: [] }
+              ]);
+              setAssistantAutoFetchCount(0);
+              setLoading(false);
+              return;
+            }
+          }
+
+          // Si la IA devolvió productos, intentar resolverlos y mostrarlos
+          if (parsedJson) {
+            let visibleText = aiRes.replace(jsonRegex, '').trim();
+            let recommendedProducts = [];
+            let productIds = parsedJson.products || parsedJson;
+
+            if (Array.isArray(productIds) && productIds.length > 0 && typeof productIds[0] === 'string') {
+              console.log(`[Auto re-invoke AI] Resolviendo ${productIds.length} nombres de productos...`);
+              for (const name of productIds) {
+                console.log(`[Auto re-invoke AI] Resolviendo: "${name}"`);
+                const candidates = await resolveNameToProducts(String(name), deptoBusqueda, null, profileData, accumulated);
+                console.log(`[Auto re-invoke AI] "${name}" → ${candidates.length} candidatos encontrados`);
+                if (candidates && candidates.length > 0) {
+                  recommendedProducts.push(candidates[0]);
+                } else {
+                  console.warn(`[Auto re-invoke AI] ⚠️ No se encontró producto para: "${name}"`);
+                }
+              }
+            } else if (Array.isArray(productIds) && productIds.length > 0) {
+              for (const rec of productIds) {
+                if (!rec) continue;
+                let found = null;
+                if (rec.sku) found = accumulated.find(p => p.sku === rec.sku);
+                if (!found && rec.id_producto) found = accumulated.find(p => String(p.id_producto) === String(rec.id_producto));
+                if (!found && (rec.nombre || rec.nombre_producto)) {
+                  const needle = String(rec.nombre || rec.nombre_producto).toLowerCase().trim();
+                  found = accumulated.find(p => ((p.nombre_producto || p.nombre || '') + '').toLowerCase().includes(needle));
+                }
+                if (found) recommendedProducts.push(found);
+              }
+            }
+
+            // completar outfit si falta
+            try { recommendedProducts = ensureCompleteOutfit(recommendedProducts, accumulated, profileData, userQuery); } catch(e) {}
+
+            console.log(`[Auto re-invoke AI] IA devolvió ${recommendedProducts.length} productos. Mostrando resultado final.`);
+            // Mostrar resultado al usuario
+            setMessages(prev => [
+              ...prev.filter(m => !m.typing),
+              { sender: 'bot', text: visibleText || 'Aquí tienes más opciones:', recommendations: recommendedProducts }
+            ]);
+            // reset counter y finalizar loading
+            setAssistantAutoFetchCount(0);
+            setLoading(false);
+            return;
+          }
+
+        } catch (e) {
+          console.error('Error en auto re-invocar IA tras BuscarMas:', e);
+        }
+      }
+
+      // Si no es modo automático, mostrar una combinación simple a partir de los candidatos
       const pick = { upper: null, lower: null, shoes: null };
-      for (const c of [...(assistantCandidates || []), ...newCandidates]) {
+      for (const c of accumulated) {
         const cat = guessCategory(c);
         if (cat && !pick[cat]) pick[cat] = c;
       }
@@ -620,6 +1007,9 @@ function Chatbot() {
         ...prev,
         { sender: 'bot', text: 'Aquí tienes más opciones:', recommendations: combo }
       ]);
+
+      // reset auto-fetch count on manual successful fetch
+      setAssistantAutoFetchCount(0);
 
     } catch (e) {
       console.error('Error en Buscar más:', e);
@@ -660,11 +1050,39 @@ function Chatbot() {
 
       // 1) Pedir al backend la primera página de candidatos compactos basados en el prompt
       try {
-        const asRes = await assistantSearch(currentPrompt, deptoBusqueda || null, 50, 1);
+        // Construir query mejorado: usar último mensaje del usuario + contexto previo si es genérico
+        let searchQuery = currentPrompt.trim();
+        
+        // Si el query es muy corto o genérico (ej. "otros ?", "más"), usar contexto previo
+        const genericWords = ['otros', 'más', 'mas', 'diferente', 'alternativas', 'opciones', 'otro', 'otra'];
+        const isGeneric = searchQuery.split(/\s+/).every(word => 
+          word.length <= 3 || genericWords.includes(word.toLowerCase().replace(/[¿?!]/g, ''))
+        );
+        
+        if (isGeneric && currentMessages.length > 1) {
+          // Buscar último mensaje del usuario con contenido significativo
+          for (let i = currentMessages.length - 2; i >= 0; i--) {
+            if (currentMessages[i].sender === 'user') {
+              const prevQuery = currentMessages[i].text.trim();
+              if (prevQuery.length > 5) {
+                searchQuery = prevQuery;
+                console.log(`[handleAsk] Query genérico detectado ("${currentPrompt}"), usando query previo: "${searchQuery}"`);
+                break;
+              }
+            }
+          }
+        }
+        
+        // Comenzamos desde página 1 para asegurar que hay candidatos (evita páginas vacías)
+        const initialPage = 1;
+        console.log(`[handleAsk] Primera invocación: consultando página ${initialPage} con query="${searchQuery}"`);
+        const asRes = await assistantSearch(searchQuery, deptoBusqueda || null, 50, initialPage);
         relevantProducts = asRes.candidates || [];
+        console.log(`[handleAsk] Página ${initialPage} → ${relevantProducts.length} candidatos`);
         setAssistantCandidates(relevantProducts);
-        setAssistantPage(1);
+        setAssistantPage(asRes.page || initialPage);
         setAssistantTotal(asRes.total || 0);
+        setAssistantFetchedPages([asRes.page || initialPage]);
       } catch (e) {
         console.error('Error assistantSearch inicial:', e);
         relevantProducts = [];
@@ -680,6 +1098,7 @@ function Chatbot() {
       );
 
       console.log("--- SÚPER PROMPT ENVIADO A PUTER.JS ---");
+      console.log(`[handleAsk] Candidatos incluidos en prompt: ${relevantProducts.length}`);
 
       // 3) Llamar a la IA con el prompt que ya incluye candidatos compactos
       const res = await askAI(fullPrompt);
@@ -708,10 +1127,10 @@ function Chatbot() {
               ...prev.filter(m => !m.typing),
               { sender: 'bot', text: 'El asesor solicita más opciones. Buscando más productos...', recommendations: [] }
             ]);
-            // Llamamos a handleBuscarMas para traer la siguiente página
-            try { await handleBuscarMas(); } catch (e) { console.error('Error auto BuscarMas tras need_more:', e); }
+            // Llamamos a handleBuscarMas (modo automático) para traer la siguiente página
+            try { await handleBuscarMas({ auto: true, attempt: 1, reason: 'need_more' }); } catch (e) { console.error('Error auto BuscarMas tras need_more:', e); }
             // No procesamos más este resultado (la nueva página añadirá sugerencias)
-            setLoading(false);
+            // Nota: NO llamamos setLoading(false) aquí; handleBuscarMas se encargará al final
             return;
           }
           visibleText = res.replace(jsonRegex, '').trim(); 
@@ -829,7 +1248,7 @@ function Chatbot() {
 
       // --- NUEVO: asegurar outfit completo en frontend si la IA no devolvió todas las categorías ---
       try {
-        let completed = ensureCompleteOutfit(recommendedProducts, relevantProducts, profileData);
+        let completed = ensureCompleteOutfit(recommendedProducts, relevantProducts, profileData, currentPrompt);
         if (completed.length > 0 && completed.length !== recommendedProducts.length) {
           console.log("Se completó outfit localmente. Antes:", recommendedProducts.length, "Ahora:", completed.length);
         }
@@ -871,14 +1290,42 @@ function Chatbot() {
           .replace(/\n/g, '<br />'); 
 
       // 5. Mostrar la respuesta final
-      setMessages((prev) => [
-        ...prev.filter(m => !m.typing), 
-        { 
-          sender: "bot", 
-          text: visibleText, 
-          recommendations: recommendedProducts 
-        },
-      ]);
+          // Antes de mostrar, comprobar similitud con la última recomendación mostrada
+          const lastBotMsg = messages.slice().reverse().find(m => m.sender === 'bot' && m.recommendations && m.recommendations.length > 0);
+          const isTooSimilar = () => {
+            try {
+              if (!lastBotMsg || !lastBotMsg.recommendations || lastBotMsg.recommendations.length === 0) return false;
+              const prevIds = new Set(lastBotMsg.recommendations.map(p => String(p.id_producto || p.sku || '').toLowerCase()));
+              if (prevIds.size === 0) return false;
+              const overlap = recommendedProducts.filter(p => prevIds.has(String(p.id_producto || p.sku || '').toLowerCase())).length;
+              const ratio = recommendedProducts.length > 0 ? (overlap / recommendedProducts.length) : 0;
+              // Si más del 50% de las recomendaciones coinciden con las previas, consideramos similar
+              return ratio >= 0.5;
+            } catch (e) { return false; }
+          };
+
+          if (isTooSimilar() && assistantAutoFetchCount < MAX_AUTO_ATTEMPTS) {
+            console.log('Recomendaciones demasiado similares a la última; solicitando más candidatos automáticamente.');
+            const nextAttempt = (assistantAutoFetchCount || 0) + 1;
+            setAssistantAutoFetchCount(nextAttempt);
+            // Informar al usuario y pedir más candidatos
+            setMessages(prev => [
+              ...prev.filter(m => !m.typing),
+              { sender: 'bot', text: 'El asesor considera que las opciones son demasiado similares a lo ya ofrecido. Buscando más alternativas más variadas...', recommendations: [] }
+            ]);
+            try { await handleBuscarMas({ auto: true, attempt: nextAttempt, reason: 'too_similar' }); } catch (e) { console.error('Error auto BuscarMas:', e); }
+            // Nota: NO llamamos setLoading(false) aquí; handleBuscarMas se encargará al final
+            return;
+          }
+
+          setMessages((prev) => [
+            ...prev.filter(m => !m.typing), 
+            { 
+              sender: "bot", 
+              text: visibleText, 
+              recommendations: recommendedProducts 
+            },
+          ]);
 
     } catch (err) {
       console.error("Error en handleAsk (IA Call):", err);
