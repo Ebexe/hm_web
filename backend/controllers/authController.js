@@ -3,6 +3,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken'); // <-- 1. IMPORTA JWT
 const pool = require('../config/db'); 
+const { sendWelcomeEmail } = require('../service/emailService'); // <-- NUEVO
 
 const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || 10);
 
@@ -30,6 +31,12 @@ const registerUser = async (req, res) => {
       'INSERT INTO Usuarios (nombre, email, password_hash) VALUES (?, ?, ?)',
       [nombre, email, password_hash]
     );
+    
+    // Enviar correo de bienvenida (no bloquea la respuesta)
+    sendWelcomeEmail(email, nombre).catch(err => {
+      console.error('Error enviando correo de bienvenida (no crítico):', err);
+    });
+    
     res.status(201).json({
       message: 'Usuario registrado exitosamente',
       userId: result.insertId,

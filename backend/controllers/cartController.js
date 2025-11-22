@@ -1,6 +1,7 @@
 // Archivo: backend/controllers/cartController.js
 
 const pool = require('../config/db'); // Importa tu conexión a la BDD
+const { sendOrderConfirmationEmail } = require('../service/emailService'); // <-- NUEVO
 
 // ... (Las funciones getOrCreateCart, getCart, addCartItem, updateCartItem, removeCartItem no cambian) ...
 // ... (Pega esas funciones aquí si las borraste) ...
@@ -233,7 +234,46 @@ const checkout = async (req, res) => {
         // 9. ¡ÉXITO! Confirmar la transacción
         await connection.commit();
 
-        // 10. Devolver el ID de la nueva compra
+        // 10. Obtener datos completos de la compra para el email
+        const [purchaseItems] = await connection.query(`
+            SELECT 
+                ic.cantidad, ic.precio_unitario,
+                v.color, v.talla,
+                p.nombre AS nombre_producto
+            FROM itemscompra ic
+            JOIN variantesproducto v ON ic.id_variante = v.id_variante
+            JOIN productos p ON v.id_producto = p.id_producto
+            WHERE ic.id_compra = ?
+        `, [newCompraId]);
+
+        // 11. Obtener email y nombre del usuario
+        const [userRows] = await connection.query('SELECT email, nombre FROM Usuarios WHERE id_usuario = ?', [id_usuario]);
+        const userEmail = userRows[0]?.email;
+        const userName = userRows[0]?.nombre;
+
+        // 12. Enviar correo de confirmación (no bloquea la respuesta)
+        if (userEmail && userName) {
+            const orderData = {
+                orderId: newCompraId,
+                items: purchaseItems,
+                subtotal: calculatedSubtotal.toFixed(2),
+                shippingCost: parseFloat(shippingCost || 0).toFixed(2),
+                total: calculatedTotal.toFixed(2),
+                fecha: new Date().toLocaleDateString('es-PE', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                })
+            };
+
+            sendOrderConfirmationEmail(userEmail, userName, orderData).catch(err => {
+                console.error('Error enviando correo de confirmación (no crítico):', err);
+            });
+        }
+
+        // 13. Devolver el ID de la nueva compra
         res.status(201).json({ success: true, newOrderId: newCompraId });
 
     } catch (error) {

@@ -19,7 +19,7 @@ function ProfilePage() {
   const [profileData, setProfileData] = useState({
     nombre: '', email: '', genero: 'femenino', edad: 18, altura_cm: '', peso_kg: '',
     tipo_cuerpo: 'medio', tonoPielLabel: '', pecho_cm: '', cintura_cm: '', cadera_cm: '',
-    largo_brazo_cm: '', largo_pierna_tiro_cm: ''
+    largo_brazo_cm: '', largo_pierna_tiro_cm: '', talla_calzado: ''
   });
   
   const [preferences, setPreferences] = useState({
@@ -81,9 +81,15 @@ function ProfilePage() {
           genero: generoForm,
           edad: profile.edad || 18,
           altura_cm: profile.altura_cm || '',
-          // ... (resto de profileData)
-          tonoPielLabel: profile.tono_piel || '', 
-          // ... (resto de medidas)
+          peso_kg: profile.peso_kg || '',
+          tipo_cuerpo: profile.tipo_cuerpo || 'medio',
+          tonoPielLabel: profile.tono_piel || '',
+          pecho_cm: profile.pecho_cm || '',
+          cintura_cm: profile.cintura_cm || '',
+          cadera_cm: profile.cadera_cm || '',
+          talla_calzado: profile.talla_calzado || '',
+          largo_brazo_cm: profile.largo_brazo_cm || '',
+          largo_pierna_tiro_cm: profile.largo_pierna_tiro_cm || ''
         });
         setPreferences({ ...prefs, ajustes: ajustes }); // <-- AÑADIDO: Guarda los ajustes
 
@@ -285,10 +291,7 @@ function ProfilePage() {
                   <option value="otro">Otro</option>
                 </select>
               </label>
-              <label>
-                Talla Calzado
-                <input type="text" name="talla_calzado" value={profileData.talla_calzado || ''} onChange={handleChange} placeholder="Ej: 42, 9, 7.5" />
-              </label>
+          
 
               <h4>3. Tono de Piel</h4>
               <div className="tono-piel"> 

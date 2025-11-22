@@ -70,10 +70,12 @@ const translationDict = {
   'leggins': ['leggings'],
   
   // Calzado
-  'zapato': ['shoe', 'shoes'],
+  'zapato': ['shoe', 'shoes', 'oxford', 'derby', 'loafer'],
   'zapatilla': ['sneaker', 'sneakers', 'trainer', 'trainers'],
   'bota': ['boot', 'boots'],
   'sandalia': ['sandal', 'sandals'],
+  'zapato formal': ['oxford', 'derby', 'loafer', 'monk', 'dress shoe'],
+  'calzado elegante': ['oxford', 'derby', 'loafer', 'monk', 'dress shoe'],
   
   // Estilos/características
   'deportivo': ['sport', 'athletic', 'sporty', 'gym', 'training'],

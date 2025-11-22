@@ -197,8 +197,8 @@ const categoryKeywords = {
 };
 
 // Keywords para detectar prendas FORMALES vs CASUALES/DEPORTIVAS
-const formalKeywords = ['blazer', 'saco', 'suit', 'terno', 'vestir', 'formal', 'elegante', 'dress', 'oxford', 'derby', 'loafer', 'wedding', 'boda'];
-const casualKeywords = ['sport', 'athletic', 'gym', 'training', 'workout', 'jogger', 'hoodie', 'sneaker', 'casual', 'thong', 'bodysuit', 'tank', 'drymove', 'mesh'];
+const formalKeywords = ['blazer', 'saco', 'suit', 'terno', 'vestir', 'formal', 'elegante', 'dress', 'oxford', 'derby', 'loafer', 'wedding', 'boda', 'monk'];
+const casualKeywords = ['sport', 'athletic', 'gym', 'training', 'workout', 'jogger', 'hoodie', 'sneaker', 'casual', 'thong', 'bodysuit', 'tank', 'drymove', 'mesh', 'boot', 'boots', 'walking', 'hiking', 'trail', 'outdoor', 'sandal', 'flip-flop', 'slipper'];
 
 const guessCategory = (prod) => {
   const text = (
@@ -790,10 +790,20 @@ function Chatbot() {
   }, [open, auth.token]); // Depende de 'open' y 'auth.token'
 
 
-  // ... (useEffect de Auto scroll sin cambios) ...
+  // Auto scroll cuando cambian los mensajes
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Scroll al último mensaje cuando se abre el chat
+  useEffect(() => {
+    if (open) {
+      // Usar timeout para asegurar que el DOM esté renderizado
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+      }, 100);
+    }
+  }, [open]);
 
   // ... (toggleOpen y resetConversation sin cambios) ...
   const toggleOpen = () => setOpen(!open);
