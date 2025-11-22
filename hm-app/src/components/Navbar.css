@@ -1,0 +1,324 @@
+/* Archivo: src/components/Navbar.css */
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  background-color: white; 
+  border-bottom: none; 
+  font-family: "SlussenStencil", sans-serif;
+  position: fixed; 
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+/* Logo */
+.logo-img {
+  height: 40px; 
+  width: auto;
+  object-fit: contain;
+}
+
+/* Links principales */
+.navbar-links {
+  list-style: none;
+  display: flex;
+  gap: 25px;
+  margin-left: -35%; /* Este margin es un poco inusual, pero lo mantengo de tu código */
+}
+
+/* Estilo para links (efecto de subrayado) */
+.navbar-links a {
+  position: relative;
+  color: #222; /* color por defecto */
+  text-decoration: none;
+  padding: 6px 4px;
+  font-size: 16px;
+  font-weight: 500;
+  transition: color 200ms ease;
+}
+.navbar-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 100%;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #e60000, #ff7a7a);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 280ms cubic-bezier(.2,.8,.2,1);
+}
+.navbar-links a:hover::after {
+  transform: scaleX(1);
+}
+
+/* active: texto y subrayado en rojo */
+.navbar-links a.active {
+  color: #e60000;
+  font-weight: 600;
+}
+.navbar-links a.active::after {
+  transform: scaleX(1);
+}
+
+/* Acciones (Contenedor) */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* Estilo base para botones y links de acción */
+.navbar-btn-sesion,
+.navbar-btn-registro,
+.navbar-btn-logout,
+.navbar-profile-link {
+  padding: 8px 18px; 
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none; 
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+  white-space: nowrap; 
+  text-align: center;
+}
+
+/* --- Botones para ESTADO NO LOGUEADO --- */
+
+/* Botón Iniciar Sesión (Rojo con borde) */
+.navbar-btn-sesion {
+  background-color: #fff;
+  color: #E60028; 
+  border: 1px solid #E60028; 
+}
+.navbar-btn-sesion:hover {
+  background-color: #fce4e8;
+}
+
+/* Botón Crear Cuenta (Rojo sólido) */
+.navbar-btn-registro {
+  background-color: #E60028;
+  color: #fff;
+  border-color: #E60028;
+}
+.navbar-btn-registro:hover {
+  background-color: #c00020; 
+  border-color: #c00020;
+}
+
+/* --- Botones/Links para ESTADO LOGUEADO --- */
+
+/* Link Mi Perfil (Rojo sólido) */
+.navbar-profile-link {
+   background-color: #E60028;
+   color: #fff;
+   border-color: #E60028;
+}
+.navbar-profile-link:hover {
+   background-color: #c00020; 
+   border-color: #c00020;
+}
+
+/* Botón Cerrar Sesión (Negro con borde sutil) */
+.navbar-btn-logout {
+  background-color: #fff; 
+  color: #222; 
+  border: 1px solid #ccc;
+}
+.navbar-btn-logout:hover {
+  background-color: #f5f5f5; 
+  border-color: #999;
+  color: #000;
+}
+
+/* ============================================= */
+/* --- ¡NUEVOS ESTILOS PARA EL CARRITO! --- */
+/* ============================================= */
+
+/* Contenedor del link del carrito (para posicionar la insignia) */
+.navbar-cart {
+  position: relative; /* Clave para posicionar el badge */
+  font-size: 1.5rem;
+  color: #222;
+  text-decoration: none;
+  padding: 5px;
+}
+
+.cart-icon {
+  position: relative;
+  z-index: 1;
+}
+
+/* La insignia roja (círculo) */
+.cart-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #E60028; /* Rojo H&M */
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  /* Animación sutil al aparecer */
+  transform: scale(1);
+  animation: pulse 0.3s ease;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.8); opacity: 0; }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* --- FIN DE ESTILOS NUEVOS --- */
+
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .navbar-links {
+    display: none; 
+  }
+
+  .navbar {
+    padding: 15px 20px;
+  }
+}
+
+/* Mantengo estilos de tu primer bloque que no estaban en el segundo */
+.navbar-search {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  outline: none;
+}
+
+.navbar-search:focus {
+  border-color: #e50010;
+}
+
+/* ICONOS estilo H&M */
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn svg {
+  opacity: 0.85;
+  transition: opacity 0.2s ease, transform 0.2s ease, stroke 0.2s ease;
+  stroke: #111; /* Color negro base H&M */
+}
+
+/* 🔥 Hover ROJO */
+.icon-btn:hover svg {
+  opacity: 1;
+  transform: scale(1.12);
+  stroke: #E60028; /* Rojo H&M */
+}
+
+/* Badge del carrito */
+.cart-wrapper {
+  position: relative;
+}
+
+.cart-badge {
+  position: absolute;
+  bottom: 0;
+  right: -4px;
+  background-color: #111;
+  color: #fff;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 11px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ============================================= */
+/* === TOOLTIP PARA ICONOS (H&M style minimal) === */
+/* ============================================= */
+
+.icon-btn {
+  position: relative; /* necesario para el tooltip */
+}
+
+/* Tooltip */
+.icon-btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  background: #111;            /* negro elegante H&M */
+  color: #fff;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+
+  transition: opacity 0.18s ease-in-out;
+}
+
+/* Mostrar tooltip */
+.icon-btn:hover::after {
+  opacity: 1;
+}
+
+/* Mensaje de bienvenida */
+@keyframes fadeSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    text-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+  }
+}
+
+.welcome-msg {
+  margin-right: 1rem;
+  font-weight: 500;
+  color: #333;
+  animation: fadeSlideIn 0.8s ease-out, pulseGlow 3s infinite;
+  white-space: nowrap;
+}
+
+/* Ocultar en pantallas pequeñas */
+@media (max-width: 600px) {
+  .welcome-msg {
+    display: none;
+  }
+}
+

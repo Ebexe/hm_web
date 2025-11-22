@@ -1,0 +1,141 @@
+/* Página de registro a pantalla completa */
+
+h4{
+  margin-bottom: 20px;
+}
+.registro-page {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: linear-gradient(180deg, #fafafa 0%, #f3f3f4 100%);
+  padding: 36px;
+  box-sizing: border-box;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  overflow-y: auto;
+}
+
+/* Header */
+.registro-header h2 { 
+  margin: 0 0 38px; 
+  font-size: 2rem; 
+  color: #111; 
+  text-align: center; 
+}
+.registro-header p { 
+  margin: 0 0 24px; 
+  color: #666; 
+  text-align: center; 
+}
+
+/* Formulario */
+.registro-form { 
+  width: 100%; 
+  max-width: 1200px; 
+}
+.cols { 
+  display: flex; 
+  gap:200px; 
+  align-items: flex-start; 
+}
+.col { 
+  flex: 1; 
+  min-width: 280px; 
+  padding-bottom: 20px; 
+}
+
+/* Inputs */
+label { 
+  display: block; 
+  margin-bottom: 8px;   /* espacio entre texto e input */
+  color: #333; 
+  font-size: 0.95rem; 
+  font-weight: 500;
+}
+input[type="text"], input[type="email"], input[type="password"], 
+input[type="tel"], input[type="date"], select {
+  width: 100%;
+  padding: 12px 14px;  /* más espacio interno */
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  background: #fff;
+  box-sizing: border-box;
+  margin-bottom: 18px; /* más espacio entre campos */
+  font-size: 0.95rem;
+  outline: none;
+  transition: border 0.3s;
+}
+input:focus, select:focus {
+  border-color: #6a11cb;
+}
+
+/* Radios */
+.genero { display: flex; gap: 12px; align-items: center; margin-bottom: 18px; }
+.genero label { display: flex; gap: 6px; align-items: center; }
+
+/* Tono de piel */
+.tono-piel { display: flex; gap: 0px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; margin-top: 20px; }
+.tono-btn {
+  width: 80px; height: 104px; border: 0; cursor: pointer;
+  transform: skewX(-14deg);
+
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  transition: transform 140ms ease, box-shadow 140ms ease;
+  outline: none;
+}
+.tono-btn:hover, .tono-btn:focus { 
+  transform: translateY(-4px) skewX(-14deg); 
+  box-shadow: 0 12px 30px rgba(0,0,0,0.12); 
+}
+.tono-btn.selected { 
+  transform: translateY(-8px) skewX(-14deg); 
+  box-shadow: 0 16px 36px rgba(0,0,0,0.18); 
+  border: 3px solid rgba(255,255,255,0.35); 
+}
+
+/* Tallas */
+.tallas-grid { 
+  display: grid; 
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 12px; 
+  margin-bottom: 18px; 
+}
+
+/* Check y acciones */
+.check { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.actions { display: flex; gap: 12px; margin-top: 22px; align-items: center; }
+
+/* Botones */
+.btn-primario {
+  background: linear-gradient(180deg,#e60000,#b80000);
+  color: #fff; border: none; padding: 12px 18px; border-radius: 10px; cursor: pointer; font-weight:600;
+  box-shadow: 0 8px 24px rgba(230,0,0,0.12);
+}
+.btn-secundario {
+  background: #fff; color: #333; border: 1px solid #ddd; padding: 10px 14px; border-radius: 8px; cursor: pointer;
+}
+
+/* Mensajes */
+.form-error { color: #b00020; margin-top: 12px; font-weight: 600; }
+.form-success { color: #0a8a3f; margin-top: 12px; font-weight: 600; }
+/* Archivo: src/pages/register.css (AÑADIR ESTA REGLA) */
+
+/* Aplica el desenfoque al contenido principal cuando el modal está abierto */
+.registro-page.modal-open > *:not(.login-overlay) {
+  filter: blur(5px);
+  transition: filter 0.3s ease-out; /* Transición suave */
+  pointer-events: none; /* Evita interacción con el fondo */
+  user-select: none; /* Evita selección de texto en el fondo */
+}
+
+/* El overlay del login debe estar por encima */
+.login-overlay {
+  z-index: 1000; /* Asegura que el modal esté al frente */
+}
+/* Responsive */
+@media (max-width: 920px) {
+  .cols { flex-direction: column; padding: 20px; }
+  .tallas-grid { grid-template-columns: 1fr; }
+}

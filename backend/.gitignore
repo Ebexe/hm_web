@@ -1,0 +1,20 @@
+# 1. Ignorar la carpeta de dependencias
+# (Esta carpeta se regenera con "npm install")
+/node_modules
+
+# 2. Ignorar el archivo de secretos
+# (¡NUNCA subas tus contraseñas a Git!)
+.env
+
+# 3. Ignorar logs de errores
+logs
+*.log
+npm-debug.log*
+
+# 4. Ignorar archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# 5. Ignorar archivos de configuración del editor de código
+.vscode/
+.idea/

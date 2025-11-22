@@ -1,0 +1,103 @@
+/* Archivo: src/components/catalogo/ProductoCard.css */
+
+.producto-card-link {
+  text-decoration: none; /* Quita subrayado del enlace */
+  color: inherit;      /* Hereda color de texto normal */
+  display: block;      /* Asegura que ocupe espacio */
+}
+
+.producto-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden; /* Para redondear imagen si es necesario */
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Para que todas las tarjetas tengan misma altura si están en grid */
+}
+
+.producto-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.producto-imagen-container {
+  width: 100%;
+  aspect-ratio: 3 / 4; /* Proporción común para fotos de ropa */
+  background-color: #f0f0f0; /* Fondo mientras carga */
+}
+
+.producto-imagen-principal {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Cubre el espacio, puede recortar */
+  display: block;
+}
+
+.producto-info {
+  padding: 15px;
+  text-align: left; /* Alineación a la izquierda */
+  flex-grow: 1; /* Empuja los colores abajo si hay espacio */
+  display: flex;
+  flex-direction: column;
+}
+
+.producto-nombre {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
+  margin: 0 0 5px 0; /* Espacio debajo del nombre */
+  /* Limitar a 2 líneas (opcional) */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 2.4em; /* Altura aprox para 2 líneas */
+}
+
+.producto-precio {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #000;
+  margin: 0 0 10px 0; /* Espacio debajo del precio */
+}
+
+.producto-colores {
+  display: flex;
+  gap: 6px; /* Espacio entre swatches */
+  margin-top: auto; /* Empuja los swatches al final de la tarjeta */
+  padding-top: 10px; /* Espacio sobre los swatches */
+  flex-wrap: wrap; /* Si hay muchos colores */
+}
+
+.color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%; /* Círculos */
+  border: 1px solid #ccc;
+  cursor: pointer;
+  padding: 0; /* Quita padding default */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+
+.color-swatch:hover {
+  transform: scale(1.1);
+}
+
+/* Estilo para el swatch seleccionado */
+.color-swatch.selected {
+  border-color: #000;
+  border-width: 2px;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px black; /* Doble borde para resaltar */
+}
+
+/* Placeholder para cuando no hay variante */
+.producto-card-placeholder {
+    height: 350px; /* Altura similar a una tarjeta */
+    background-color: #eee;
+    border-radius: 8px;
+}

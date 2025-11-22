@@ -1,0 +1,264 @@
+/* ===== BOTÓN FLOTANTE ===== */
+.chatbot-toggle-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #111;
+   border: 2px solid #3c3838; /* 🔴 borde rojo minimalista */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+  z-index: 999;
+}
+
+.chatbot-toggle-button:hover {
+  transform: scale(1.05);
+}
+
+.chatbot-icon {
+  width: 36px;
+  height: 36px;
+}
+
+/* ===== VENTANA PRINCIPAL ===== */
+.chatbot-window {
+  position: fixed;
+  bottom: 90px;
+  right: 20px;
+  width: 360px;
+  height: 480px;
+  background: #fff; /* Fondo principal blanco */
+  border-radius: 16px;
+  box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: "Segoe UI", sans-serif;
+  z-index: 1000;
+}
+
+/* ===== HEADER ===== */
+.chatbot-header {
+  background: #111;
+  color: #fff;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chatbot-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.reset-btn,
+.close-btn-chatbot {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: white;
+  transition: opacity 0.2s ease;
+}
+
+.reset-btn {
+  margin-top: 1px;
+  padding-top: 1px;
+  margin-right: 20px;
+}
+
+.reset-btn:hover,
+.close-btn-chatbot:hover {
+  opacity: 0.7;
+}
+
+/* ===== CUERPO DE MENSAJES ===== */
+.chatbot-body {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #fafafa; /* Fondo del chat claro */
+}
+
+/* Scrollbar */
+.chatbot-body::-webkit-scrollbar {
+  width: 6px;
+}
+.chatbot-body::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+.chatbot-body::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+.message {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+  white-space: pre-line;
+}
+
+.user-message {
+  align-self: flex-end;
+  background: #111; /* Mensaje usuario oscuro */
+  color: #fff;
+  border-radius: 14px 14px 0 14px;
+}
+
+.bot-message {
+  align-self: flex-start;
+  background: #f1f1f1; /* Mensaje bot claro */
+  color: #222;
+  border-radius: 14px 14px 14px 0;
+}
+
+/* ===== ANIMACIÓN "Escribiendo..." ===== */
+.bot-message.typing {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 8px 12px;
+}
+
+.bot-message.typing span {
+  display: block;
+  width: 6px;
+  height: 6px;
+  background: #555;
+  border-radius: 50%;
+  animation: bounce 1.3s infinite;
+}
+
+.bot-message.typing span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.bot-message.typing span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* ============================================= */
+/* --- ESTILOS DE LINKS DE PRODUCTOS (ACTUALIZADO) --- */
+/* ============================================= */
+
+/* El contenedor para los links de productos */
+.chatbot-recommendations {
+  margin-top: 15px;
+  padding-top: 10px;
+  /* Línea divisoria MÁS CLARA para el fondo claro del chat */
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Estilo para el título "Te podría interesar:" */
+.chatbot-recommendations p {
+  font-size: 0.9em;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333; /* Color oscuro para que contraste con el fondo claro del chat */
+  opacity: 0.9;
+}
+
+/* El link individual del producto (AHORA ROJO) */
+.chatbot-product-link {
+  display: block; /* Para que cada link ocupe una línea */
+  padding: 8px 12px;
+  background-color: #e50010; /* Rojo H&M (o el que prefieras) */
+  border-radius: 8px;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+  color: #ffffff; /* Texto blanco para contraste */
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.2s;
+  border: 1px solid #c4000d; /* Borde rojo un poco más oscuro */
+}
+
+.chatbot-product-link:hover {
+  background-color: #c4000d; /* Rojo más oscuro al pasar el ratón */
+  text-decoration: underline;
+  color: #ffffff; /* Asegura que el texto siga siendo blanco */
+}
+
+/* --- FIN ESTILOS DE LINKS --- */
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* ===== INPUT ===== */
+.chatbot-input-container {
+  display: flex;
+  border-top: 1px solid #ddd;
+  background: #fff;
+}
+
+.chatbot-input {
+  flex: 1;
+  border: none;
+  padding: 10px;
+  font-size: 14px;
+  outline: none;
+  resize: none;
+}
+
+.chatbot-submit-button {
+  background: #111;
+  border: none;
+  color: #fff;
+  padding: 0 18px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.chatbot-submit-button:hover {
+  background: #333;
+}
+
+/* =====CAMBIO DE COLOR===== */
+.chatbot-toggle-button:hover {
+  transform: scale(1.05);
+  background: #e50010; /* 🔴 Cambia a rojo al pasar el mouse */
+  border-color: #e50010;
+}
+
+/* =====ANIMACION LATIDOS===== */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.chatbot-toggle-button {
+  animation: pulse 2.2s infinite ease-in-out;
+}
+
+
+
+
+/* ===== RESPONSIVO ===== */
+@media (max-width: 480px) {
+  .chatbot-window {
+    width: 95%;
+    height: 70%;
+    right: 10px;
+    bottom: 80px;
+  }
+}

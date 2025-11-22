@@ -1,0 +1,315 @@
+/* Archivo: hm-app/src/pages/CartPage.css (NUEVO) */
+
+.cart-page-container {
+    max-width: 1300px;
+    margin: 120px auto 40px auto; /* Margen superior para el Navbar fijo */
+    padding: 0 20px;
+}
+
+.cart-page-container h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 30px;
+}
+
+.center-text {
+    text-align: center;
+    min-height: 50vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.cart-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr; /* 66% para items, 33% para resumen */
+    gap: 30px;
+}
+
+/* --- Lista de Items (Izquierda) --- */
+.cart-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.cart-item {
+    display: grid;
+    grid-template-columns: 100px 1fr 120px 80px; /* Imagen, Detalles, Acciones, Subtotal */
+    gap: 20px;
+    align-items: flex-start;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.cart-item-image {
+    width: 100px;
+    height: 125px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.cart-item-details {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.cart-item-details .item-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #222;
+    text-decoration: none;
+}
+.cart-item-details .item-name:hover {
+    text-decoration: underline;
+}
+
+.cart-item-details .item-info {
+    font-size: 0.9rem;
+    color: #555;
+    text-transform: capitalize;
+}
+.cart-item-details .item-price-unit {
+    font-size: 0.9rem;
+    color: #777;
+    margin-top: 5px;
+}
+
+.cart-item-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.cart-item-actions label {
+    font-size: 0.8rem;
+    color: #555;
+}
+
+.item-quantity-input {
+    width: 60px;
+    padding: 5px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.item-remove-btn {
+    background: none;
+    border: none;
+    color: #E60028;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
+.item-remove-btn:hover {
+    color: #c00020;
+}
+
+.cart-item-subtotal {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: right;
+}
+
+/* --- Resumen (Derecha) --- */
+.cart-summary {
+    background: #fdfdfd;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 25px;
+    height: fit-content; /* Para que no se estire */
+    position: sticky; /* Se queda fijo al hacer scroll */
+    top: 120px; /* Debajo del Navbar */
+}
+
+.cart-summary h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0 0 20px 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.summary-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #000;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #ccc;
+}
+
+.checkout-btn {
+    display: block;
+    width: 100%;
+    padding: 15px;
+    margin-top: 20px;
+    background-color: #E60028; /* Rojo H&M */
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+.checkout-btn:hover {
+    background-color: #c00020;
+}
+/* ... (Todos tus estilos existentes de .cart-page-container, .cart-item, etc. van aquí arriba) ... */
+
+
+/* ============================================= */
+/* --- AÑADE ESTO AL FINAL DE CartPage.css --- */
+/* ============================================= */
+
+/* Contenedor para las opciones de envío */
+.shipping-options {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border-top: 1px solid #eee;
+  padding-top: 20px;
+}
+
+.shipping-label {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 12px;
+  display: block;
+  color: #333;
+}
+
+/* Estilo para cada opción (recojo o envío) */
+.shipping-option {
+  display: flex;
+  align-items: center;
+  background: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Estilo cuando la opción está seleccionada */
+.shipping-option:has(input:checked) {
+  border-color: #E60028; /* Borde rojo H&M */
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.shipping-option input[type="radio"] {
+  /* Hacemos un radio button customizado (opcional pero se ve mejor) */
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  margin: 0 12px 0 0;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.2s;
+}
+
+.shipping-option input[type="radio"]:checked {
+  border-color: #E60028;
+}
+
+/* El círculo interior del radio button */
+.shipping-option input[type="radio"]:checked::after {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  background-color: #E60028;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+
+/* La etiqueta de texto (ej. "Recojo en Tienda") */
+.shipping-option label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #333;
+}
+
+/* El precio (ej. "Gratis" o "S/ 10.50") */
+.shipping-option label span {
+  font-weight: 700;
+  color: #222;
+}
+/* Hacemos que el "Gratis" sea verde (opcional) */
+.shipping-option:has(input[value="tienda"]) label span {
+  color: #008a00;
+}
+/* ... (Añade esto al final de tu CartPage.css) ... */
+
+.checkout-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.checkout-error {
+    font-size: 0.9rem;
+    color: #E60028; /* Rojo H&M */
+    font-weight: 600;
+    text-align: center;
+    margin-top: 15px;
+    background-color: #fce4e8;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+/* --- Responsividad --- */
+@media (max-width: 900px) {
+    .cart-layout {
+        grid-template-columns: 1fr; /* Una sola columna */
+    }
+    .cart-summary {
+        position: static; /* Deja de ser sticky */
+        margin-top: 30px;
+    }
+    .cart-item {
+        /* Ajustamos layout para móviles */
+        grid-template-columns: 80px 1fr;
+        grid-template-rows: auto auto; /* 3 filas */
+        gap: 10px;
+    }
+    .cart-item-image {
+        grid-row: 1 / span 2; /* Imagen ocupa 2 filas */
+        width: 80px;
+        height: 100px;
+    }
+    .cart-item-details { grid-column: 2; grid-row: 1; }
+    .cart-item-actions { grid-column: 2; grid-row: 2; flex-direction: row; align-items: center; }
+    .cart-item-subtotal { grid-column: 2; grid-row: 3; text-align: left; margin-top: 10px; }
+}
