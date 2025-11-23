@@ -87,10 +87,10 @@ export const CartProvider = ({ children }) => {
     };
 
     // --- 2. FUNCIÓN DE CHECKOUT AÑADIDA AL CONTEXTO ---
-    const checkout = async (shippingDetails) => {
+    const checkout = async (checkoutDetails) => {
         try {
-            // Llama a la API con los detalles del envío
-            const data = await checkoutAPI(auth.token, shippingDetails);
+            // Llama a la API con los detalles del envío y método de pago
+            const data = await checkoutAPI(auth.token, checkoutDetails);
             
             // Si tiene éxito, la API del backend ya vació el carrito.
             // Ahora, reseteamos el estado local del carrito.

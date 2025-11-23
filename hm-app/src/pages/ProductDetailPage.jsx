@@ -6,6 +6,7 @@ import { getProductoById } from '../services/productService';
 import { getProfile, getUserAjustes } from '../services/userService';
 import useAuth from '../hooks/useAuth'; 
 import { useCart } from '../context/CartContext'; 
+import Toast from '../components/Toast';
 
 import './ProductDetailPage.css'; 
 
@@ -74,6 +75,7 @@ function ProductDetailPage() {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [toast, setToast] = useState(null); // Toast notification
 
   // --- ESTADOS UNIFICADOS: Solo guardamos la variante seleccionada ---
   // Esto simplifica todo: si hay variante seleccionada, tenemos su color y su talla
@@ -221,10 +223,16 @@ function ProductDetailPage() {
       const idToAdd = variantToAdd.id_variante || producto.variantes?.[0]?.id_variante || selectedVariante.id_variante;
       addItem(idToAdd, 1)
         .then(() => {
-          alert(`¡${producto.nombre} (${variantToAdd.color || selectedVariante.color} - ${variantToAdd.talla || selectedVariante.talla}) añadido!`);
+          setToast({
+            message: `¡${producto.nombre} (${variantToAdd.color || selectedVariante.color} - ${variantToAdd.talla || selectedVariante.talla}) añadido al carrito!`,
+            type: 'success'
+          });
         })
         .catch((err) => {
-          alert(`Error: ${err.message}`);
+          setToast({
+            message: `Error: ${err.message}`,
+            type: 'error'
+          });
         });
     } else {
       alert("Selecciona una talla disponible.");
@@ -302,6 +310,15 @@ function ProductDetailPage() {
         </button>
 
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast 
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

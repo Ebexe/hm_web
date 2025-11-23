@@ -72,13 +72,12 @@ export default function RegisterPage() {
       );
 
 
-      setSuccess(result.message + " Serás redirigido al login..."); 
+      setSuccess(result.message + " Redirigiendo a tu perfil..."); 
       setLoading(false);
       
-      // Redirige al login después de mostrar el mensaje de éxito
+      // Redirige directamente al perfil después del registro exitoso
       setTimeout(() => {
-        // En lugar de navegar, abrimos el modal de login
-        setShowLogin(true); 
+        navigate('/perfil');
       }, 1500); 
 
     } catch (err) {

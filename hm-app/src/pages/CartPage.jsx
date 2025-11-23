@@ -1,8 +1,9 @@
 /* Archivo: hm-app/src/pages/CartPage.jsx (ACTUALIZADO PARA IMÁGENES IA) */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
+import DeliveryOptionsModal from '../components/DeliveryOptionsModal';
 
 import './CartPage.css';
 
@@ -15,8 +16,43 @@ function CartPage() {
     const navigate = useNavigate();
     
     const [shippingMethod, setShippingMethod] = useState('tienda'); 
-    const [isProcessing, setIsProcessing] = useState(false); // Estado para deshabilitar el botón
-    const [checkoutError, setCheckoutError] = useState(null); // Para mostrar errores (ej. "Sin stock")
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [checkoutError, setCheckoutError] = useState(null);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showDeliveryModal, setShowDeliveryModal] = useState(false);
+    const [paymentData, setPaymentData] = useState({
+        cardNumber: '',
+        cardName: '',
+        expiryDate: '',
+        cvv: ''
+    });
+    const [deliveryInfo, setDeliveryInfo] = useState(null);
+    const [userProfile, setUserProfile] = useState(null);
+
+    // Cargar datos del perfil del usuario
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+                
+                const response = await fetch('http://localhost:3001/api/users/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    setUserProfile(data);
+                }
+            } catch (error) {
+                console.error('Error al cargar perfil:', error);
+            }
+        };
+        
+        fetchUserProfile();
+    }, []);
 
     const shippingCost = useMemo(() => {
       return shippingMethod === 'envio' ? COSTO_ENVIO : COSTO_RECOJO;
@@ -46,29 +82,113 @@ function CartPage() {
         }
     };
 
-    // --- HANDLER PARA EL BOTÓN DE PAGO ---
-    const handleCheckout = async () => {
-        setIsProcessing(true); // Deshabilita el botón
+    // --- HANDLER PARA ABRIR EL MODAL DE PAGO ---
+    const handleProceedToPayment = () => {
+        setShowPaymentModal(true);
+    };
+
+    // --- HANDLER PARA CAMBIOS EN EL FORMULARIO DE PAGO ---
+    const handlePaymentChange = (e) => {
+        const { name, value } = e.target;
+        let formattedValue = value;
+
+        // Formatear número de tarjeta (grupos de 4 dígitos)
+        if (name === 'cardNumber') {
+            formattedValue = value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
+            if (formattedValue.length > 19) return; // 16 dígitos + 3 espacios
+        }
+
+        // Formatear fecha de expiración (MM/YY)
+        if (name === 'expiryDate') {
+            formattedValue = value.replace(/\D/g, '');
+            if (formattedValue.length >= 2) {
+                formattedValue = formattedValue.slice(0, 2) + '/' + formattedValue.slice(2, 4);
+            }
+            if (formattedValue.length > 5) return;
+        }
+
+        // Limitar CVV a 3-4 dígitos
+        if (name === 'cvv') {
+            formattedValue = value.replace(/\D/g, '').slice(0, 4);
+        }
+
+        setPaymentData(prev => ({ ...prev, [name]: formattedValue }));
+    };
+
+    // --- HANDLER PARA CONFIRMAR EL PAGO (simulación) ---
+    const handleConfirmPayment = async (e) => {
+        e.preventDefault();
+        
+        // Validaciones básicas
+        const cardNumberDigits = paymentData.cardNumber.replace(/\s/g, '');
+        if (cardNumberDigits.length < 16) {
+            setCheckoutError('Número de tarjeta inválido');
+            return;
+        }
+        if (!paymentData.cardName.trim()) {
+            setCheckoutError('Nombre del titular requerido');
+            return;
+        }
+        if (paymentData.expiryDate.length !== 5) {
+            setCheckoutError('Fecha de expiración inválida');
+            return;
+        }
+        if (paymentData.cvv.length < 3) {
+            setCheckoutError('CVV inválido');
+            return;
+        }
+
+        // Simular delay de procesamiento de pago
+        setIsProcessing(true);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setIsProcessing(false);
+        
+        // Cerrar modal de pago y abrir modal de entrega
+        setShowPaymentModal(false);
+        setShowDeliveryModal(true);
+    };
+
+    // Handler para confirmar opciones de entrega
+    const handleDeliveryConfirm = async (delivery) => {
+        setDeliveryInfo(delivery);
+        setShowDeliveryModal(false);
+        setIsProcessing(true);
         setCheckoutError(null);
         
         try {
-            // Llama a la función del context
+            // Extraer últimos 4 dígitos de la tarjeta
+            const cardNumberDigits = paymentData.cardNumber.replace(/\s/g, '');
+            const lastFourDigits = cardNumberDigits.slice(-4);
+            
+            // Llamar al checkout con información completa
             const data = await checkout({
                 shippingCost: shippingCost,
-                total: grandTotal
+                total: grandTotal,
+                paymentMethod: `Tarjeta ****${lastFourDigits}`,
+                deliveryInfo: delivery
             });
             
-            // ¡ÉXITO!
             console.log("Compra exitosa, ID de orden:", data.newOrderId);
-            // Redirigimos a una página de "Gracias"
             navigate(`/pedido-exitoso/${data.newOrderId}`);
             
         } catch (error) {
-            // Si el backend lanza un error (ej. Stock insuficiente), lo mostramos
-            console.error("Error al procesar el pago:", error);
+            console.error("Error al procesar el checkout:", error);
             setCheckoutError(error.message);
-            setIsProcessing(false); // Vuelve a habilitar el botón
+            setIsProcessing(false);
+            setShowDeliveryModal(true); // Volver a abrir el modal
         }
+    };
+
+    // --- HANDLER PARA CANCELAR EL PAGO ---
+    const handleCancelPayment = () => {
+        setShowPaymentModal(false);
+        setPaymentData({ cardNumber: '', cardName: '', expiryDate: '', cvv: '' });
+        setCheckoutError(null);
+    };
+
+    // --- HANDLER PARA CANCELAR OPCIONES DE ENTREGA ---
+    const handleCancelDelivery = () => {
+        setShowDeliveryModal(false);
     };
 
 
@@ -194,10 +314,10 @@ function CartPage() {
                     {/* --- BOTÓN DE PAGO --- */}
                     <button 
                         className="checkout-btn"
-                        onClick={handleCheckout}
-                        disabled={isProcessing} // Se deshabilita al procesar
+                        onClick={handleProceedToPayment}
+                        disabled={isProcessing}
                     >
-                        {isProcessing ? 'Procesando...' : 'Proceder al Pago'}
+                        Proceder al Pago
                     </button>
                     
                     {/* Muestra errores de checkout (ej. Sin Stock) */}
@@ -208,6 +328,127 @@ function CartPage() {
                     )}
                 </div>
             </div>
+
+            {/* --- MODAL DE PAGO --- */}
+            {showPaymentModal && (
+                <div className="payment-modal-overlay" onClick={handleCancelPayment}>
+                    <div className="payment-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="payment-modal-header">
+                            <h2>💳 Información de Pago</h2>
+                            <button className="modal-close-btn" onClick={handleCancelPayment}>✕</button>
+                        </div>
+
+                        <form onSubmit={handleConfirmPayment} className="payment-form">
+                            <div className="form-group">
+                                <label htmlFor="cardNumber">Número de Tarjeta</label>
+                                <input
+                                    type="text"
+                                    id="cardNumber"
+                                    name="cardNumber"
+                                    value={paymentData.cardNumber}
+                                    onChange={handlePaymentChange}
+                                    placeholder="1234 5678 9012 3456"
+                                    required
+                                    autoComplete="off"
+                                />
+                                <small className="hint">Tarjeta de prueba: 4532 1234 5678 9010</small>
+                            </div>
+
+                            <div className="form-group">
+                                <label htmlFor="cardName">Nombre del Titular</label>
+                                <input
+                                    type="text"
+                                    id="cardName"
+                                    name="cardName"
+                                    value={paymentData.cardName}
+                                    onChange={handlePaymentChange}
+                                    placeholder="JUAN PEREZ"
+                                    required
+                                    style={{ textTransform: 'uppercase' }}
+                                />
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label htmlFor="expiryDate">Fecha de Expiración</label>
+                                    <input
+                                        type="text"
+                                        id="expiryDate"
+                                        name="expiryDate"
+                                        value={paymentData.expiryDate}
+                                        onChange={handlePaymentChange}
+                                        placeholder="MM/YY"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label htmlFor="cvv">CVV</label>
+                                    <input
+                                        type="text"
+                                        id="cvv"
+                                        name="cvv"
+                                        value={paymentData.cvv}
+                                        onChange={handlePaymentChange}
+                                        placeholder="123"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="payment-summary">
+                                <div className="summary-line">
+                                    <span>Subtotal:</span>
+                                    <span>S/ {cart.total.toFixed(2)}</span>
+                                </div>
+                                <div className="summary-line">
+                                    <span>Envío:</span>
+                                    <span>S/ {shippingCost.toFixed(2)}</span>
+                                </div>
+                                <div className="summary-line total">
+                                    <span>Total a pagar:</span>
+                                    <span>S/ {grandTotal.toFixed(2)}</span>
+                                </div>
+                            </div>
+
+                            {checkoutError && (
+                                <div className="payment-error">
+                                    {checkoutError}
+                                </div>
+                            )}
+
+                            <div className="payment-actions">
+                                <button 
+                                    type="submit" 
+                                    className="btn-confirm-payment"
+                                    disabled={isProcessing}
+                                >
+                                    {isProcessing ? 'Procesando...' : 'Confirmar Pago'}
+                                </button>
+                                <button 
+                                    type="button" 
+                                    className="btn-cancel-payment"
+                                    onClick={handleCancelPayment}
+                                    disabled={isProcessing}
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Opciones de Entrega */}
+            <DeliveryOptionsModal
+                show={showDeliveryModal}
+                onClose={handleCancelDelivery}
+                onConfirm={handleDeliveryConfirm}
+                defaultAddress={userProfile?.direccion || ''}
+                defaultName={userProfile?.nombre || ''}
+                defaultDNI={userProfile?.dni || ''}
+                shippingMethod={shippingMethod}
+            />
         </div>
     );
 }

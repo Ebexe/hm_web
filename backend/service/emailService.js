@@ -22,7 +22,7 @@ const sendWelcomeEmail = async (email, nombre) => {
         email: FROM_EMAIL,
         name: FROM_NAME
       },
-      subject: '¡Bienvenido a H&M Fashion Assistant! 👋',
+      subject: '¡Bienvenido a H&M Fashion Assistant mi rey! 👋',
       html: `
         <!DOCTYPE html>
         <html>
@@ -131,7 +131,7 @@ const sendWelcomeEmail = async (email, nombre) => {
  */
 const sendOrderConfirmationEmail = async (email, nombre, orderData) => {
   try {
-    const { orderId, items, subtotal, shippingCost, total, fecha } = orderData;
+    const { orderId, items, subtotal, shippingCost, total, paymentMethod, deliveryInfo, fecha } = orderData;
 
     // Generar HTML para los items
     const itemsHtml = items.map(item => `
@@ -276,11 +276,26 @@ const sendOrderConfirmationEmail = async (email, nombre, orderData) => {
               <h2>Hola ${nombre},</h2>
               <p>Gracias por tu compra en H&M. Tu pedido ha sido confirmado y está siendo procesado.</p>
               
-              <div class="order-info">
-                <h3>Detalles del Pedido</h3>
-                <p><strong>Número de Pedido:</strong> #${orderId}</p>
-                <p><strong>Fecha:</strong> ${fecha || new Date().toLocaleDateString('es-PE')}</p>
-                
+            <div class="order-info">
+              <h3>Detalles del Pedido</h3>
+              <p><strong>Número de Pedido:</strong> #${orderId}</p>
+              <p><strong>Fecha:</strong> ${fecha || new Date().toLocaleDateString('es-PE')}</p>
+              <p><strong>Método de Pago:</strong> ${paymentMethod || 'No especificado'}</p>
+              ${deliveryInfo ? `
+              <h3 style="margin-top: 25px;">Información de Entrega</h3>
+              <p><strong>Tipo de Entrega:</strong> ${deliveryInfo.shippingMethod === 'tienda' ? 'Recojo en Tienda' : 'Envío a Domicilio'}</p>
+              <p><strong>Fecha Estimada:</strong> ${new Date(deliveryInfo.deliveryDate).toLocaleDateString('es-PE', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}</p>
+              <p><strong>Receptor:</strong> ${deliveryInfo.recipientName}</p>
+              <p><strong>DNI del Receptor:</strong> ${deliveryInfo.recipientDNI}</p>
+              ${deliveryInfo.shippingMethod === 'envio' ? `<p><strong>Dirección de Entrega:</strong> ${deliveryInfo.deliveryAddress}</p>` : '<p><strong>Ubicación:</strong> Tienda principal H&M</p>'}
+              ` : ''}
+            </div>
+              
                 <table>
                   <thead>
                     <tr>

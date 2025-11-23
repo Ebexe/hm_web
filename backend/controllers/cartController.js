@@ -155,8 +155,8 @@ const removeCartItem = async (req, res) => {
  */
 const checkout = async (req, res) => {
     const id_usuario = req.user.id_usuario;
-    // Recibimos los costos calculados por el frontend
-    const { shippingCost, total } = req.body; 
+    // Recibimos los costos calculados, método de pago e información de entrega
+    const { shippingCost, total, paymentMethod, deliveryInfo } = req.body; 
     
     // Obtenemos una conexión del pool para manejar la transacción
     let connection;
@@ -259,6 +259,8 @@ const checkout = async (req, res) => {
                 subtotal: calculatedSubtotal.toFixed(2),
                 shippingCost: parseFloat(shippingCost || 0).toFixed(2),
                 total: calculatedTotal.toFixed(2),
+                paymentMethod: paymentMethod || 'No especificado',
+                deliveryInfo: deliveryInfo || null, // Información de entrega
                 fecha: new Date().toLocaleDateString('es-PE', { 
                     year: 'numeric', 
                     month: 'long', 

@@ -9,6 +9,7 @@ import {
 } from '../services/userService';
 import { getAllLookups } from '../services/lookupService';
 import useAuth from '../hooks/useAuth';
+import Toast from '../components/Toast';
 import './profile.css'; 
 
 function ProfilePage() {
@@ -19,7 +20,8 @@ function ProfilePage() {
   const [profileData, setProfileData] = useState({
     nombre: '', email: '', genero: 'femenino', edad: 18, altura_cm: '', peso_kg: '',
     tipo_cuerpo: 'medio', tonoPielLabel: '', pecho_cm: '', cintura_cm: '', cadera_cm: '',
-    largo_brazo_cm: '', largo_pierna_tiro_cm: '', talla_calzado: ''
+    largo_brazo_cm: '', largo_pierna_tiro_cm: '', talla_calzado: '',
+    direccion: '', dni: '' // <-- AÑADIDO: dirección y DNI
   });
   
   const [preferences, setPreferences] = useState({
@@ -35,6 +37,7 @@ function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [toast, setToast] = useState(null); // Toast notification
 
   // --- Datos para el Selector de Tono de Piel ---
   const tonos = [
@@ -89,7 +92,9 @@ function ProfilePage() {
           cadera_cm: profile.cadera_cm || '',
           talla_calzado: profile.talla_calzado || '',
           largo_brazo_cm: profile.largo_brazo_cm || '',
-          largo_pierna_tiro_cm: profile.largo_pierna_tiro_cm || ''
+          largo_pierna_tiro_cm: profile.largo_pierna_tiro_cm || '',
+          direccion: profile.direccion || '',
+          dni: profile.dni || ''
         });
         setPreferences({ ...prefs, ajustes: ajustes }); // <-- AÑADIDO: Guarda los ajustes
 
@@ -199,6 +204,8 @@ function ProfilePage() {
         cintura_cm: profileData.cintura_cm || null,
         cadera_cm: profileData.cadera_cm || null,
         talla_calzado: profileData.talla_calzado || null,
+        direccion: profileData.direccion || null,
+        dni: profileData.dni || null
       };
       
       // 2. Preparamos payloads
@@ -221,6 +228,10 @@ function ProfilePage() {
 
 
       setSuccess('¡Perfil y preferencias actualizados exitosamente!');
+      setToast({
+        message: '¡Perfil actualizado exitosamente!',
+        type: 'success'
+      });
 
     } catch (err) {
       setError(err.message || 'Error al guardar los cambios.');
@@ -273,7 +284,9 @@ function ProfilePage() {
                 </label>
               </div>
 
-              <h4>2. Datos Físicos</h4>
+             
+
+              <h4>3. Datos Físicos</h4>
               <label>
                 Altura (cm)
                 <input type="number" name="altura_cm" value={profileData.altura_cm} onChange={handleChange} />
@@ -293,7 +306,7 @@ function ProfilePage() {
               </label>
           
 
-              <h4>3. Tono de Piel</h4>
+              <h4>4. Tono de Piel</h4>
               <div className="tono-piel"> 
                 {tonos.map((t) => (
                   <button
@@ -314,8 +327,8 @@ function ProfilePage() {
             {/* --- Columna Derecha --- */}
             <div className="col derecha">
                 
-              {/* --- AÑADIDO: Sección 4. Ajuste por Categoría --- */}
-              <h4>4. Ajustes por Categoría</h4>
+              {/* --- AÑADIDO: Sección 5. Ajuste por Categoría --- */}
+              <h4>5. Ajustes por Categoría</h4>
               <p style={{marginBottom: '20px', fontSize: '0.9em', color:'#555'}}>Define tu talla base y tu corte ideal para cada prenda.</p>
 
               <fieldset className="preferences-group">
@@ -381,8 +394,8 @@ function ProfilePage() {
                 </div>
               </fieldset>
 
-              {/* --- Sección 5. Preferencias de Estilo --- */}
-              <h4>5. Preferencias de Estilo</h4>
+              {/* --- Sección 6. Preferencias de Estilo --- */}
+              <h4>6. Preferencias de Estilo</h4>
               <fieldset className="preferences-group">
                 <legend>Mis Estilos Favoritos</legend>
                 {lookups.estilos.map(estilo => (
@@ -458,6 +471,15 @@ function ProfilePage() {
             </div>
           </div>
         </form>
+
+        {/* Toast Notification */}
+        {toast && (
+          <Toast 
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+          />
+        )}
       </div>
     </div>
   );

@@ -54,15 +54,14 @@ WHERE u.id_usuario = ?;
  * @acceso Privado
  */
 const updateProfile = async (req, res) => {
-  try {
-    const { id_usuario } = req.user;
-    const {
-      nombre, 
-      departamento_preferido, edad, altura_cm, peso_kg, tono_piel, tipo_cuerpo,
-      pecho_cm, cintura_cm, cadera_cm, largo_brazo_cm, largo_pierna_tiro_cm
-    } = req.body;
-    
-    // 1. Actualizar Nombre en la tabla Usuarios
+  try {
+    const { id_usuario } = req.user;
+    const {
+      nombre, 
+      departamento_preferido, edad, altura_cm, peso_kg, tono_piel, tipo_cuerpo,
+      pecho_cm, cintura_cm, cadera_cm, largo_brazo_cm, largo_pierna_tiro_cm,
+      talla_calzado, direccion, dni // <-- AÑADIDO
+    } = req.body;    // 1. Actualizar Nombre en la tabla Usuarios
     if (nombre) {
       await pool.query(
         'UPDATE Usuarios SET nombre = ? WHERE id_usuario = ?',
