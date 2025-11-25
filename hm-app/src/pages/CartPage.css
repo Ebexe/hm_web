@@ -330,6 +330,7 @@
     align-items: center;
     z-index: 9999;
     padding: 20px;
+    overflow-y: auto;
 }
 
 .payment-modal {
@@ -337,8 +338,11 @@
     border-radius: 12px;
     width: 100%;
     max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
     animation: modalSlideIn 0.3s ease-out;
+    margin: auto;
 }
 
 @keyframes modalSlideIn {
@@ -356,7 +360,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 25px 30px;
+    padding: 20px 25px;
     border-bottom: 1px solid #eee;
     background: linear-gradient(135deg, #E50010 0%, #c00020 100%);
     color: white;
@@ -365,7 +369,7 @@
 
 .payment-modal-header h2 {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-weight: 600;
 }
 
@@ -390,27 +394,27 @@
 }
 
 .payment-form {
-    padding: 30px;
+    padding: 25px;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .form-group label {
     display: block;
     font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 8px;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
     color: #333;
 }
 
 .form-group input {
     width: 100%;
-    padding: 12px 15px;
+    padding: 10px 12px;
     border: 1px solid #ddd;
     border-radius: 6px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     transition: border-color 0.2s;
     box-sizing: border-box;
 }
@@ -514,20 +518,89 @@
 }
 
 /* Responsividad del modal */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .payment-modal {
-        max-width: 100%;
-        margin: 0;
-        border-radius: 0;
-        max-height: 100vh;
-        overflow-y: auto;
+        max-width: 95%;
+        max-height: 85vh;
+    }
+
+    .payment-modal-header {
+        padding: 15px 20px;
+    }
+
+    .payment-modal-header h2 {
+        font-size: 1.1rem;
+    }
+
+    .payment-form {
+        padding: 20px;
     }
 
     .form-row {
         grid-template-columns: 1fr;
+        gap: 0;
     }
 
     .payment-actions {
         flex-direction: column;
+        gap: 10px;
+    }
+
+    .payment-actions button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .payment-modal {
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .payment-modal-header {
+        border-radius: 0;
+        padding: 12px 15px;
+    }
+
+    .payment-modal-header h2 {
+        font-size: 1rem;
+    }
+
+    .payment-form {
+        padding: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group input {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-height: 700px) {
+    .payment-modal-overlay {
+        align-items: flex-start;
+        padding: 10px;
+    }
+
+    .payment-modal {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .payment-modal-header {
+        padding: 12px 20px;
+    }
+
+    .payment-form {
+        padding: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 12px;
     }
 }

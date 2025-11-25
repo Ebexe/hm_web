@@ -102,9 +102,9 @@ export const removeItemFromCartAPI = async (token, id_variante) => {
 // --- (NUEVA FUNCIÓN AÑADIDA AL FINAL) ---
 /**
  * Procesa el checkout en el backend.
- * Requiere token y los detalles del costo y método de pago.
+ * Requiere token y los detalles del costo, método de pago e información de entrega.
  */
-export const checkoutAPI = async (token, { shippingCost, total, paymentMethod }) => {
+export const checkoutAPI = async (token, { shippingCost, total, paymentMethod, deliveryInfo }) => {
     try {
         const response = await fetch(`${API_URL}/cart/checkout`, {
             method: 'POST',
@@ -112,7 +112,7 @@ export const checkoutAPI = async (token, { shippingCost, total, paymentMethod })
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ shippingCost, total, paymentMethod })
+            body: JSON.stringify({ shippingCost, total, paymentMethod, deliveryInfo })
         });
         
         const data = await response.json(); // Lee la respuesta (éxito o error)

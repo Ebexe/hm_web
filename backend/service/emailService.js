@@ -10,6 +10,22 @@ const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@hmfashion.com';
 const FROM_NAME = 'H&M Fashion Assistant';
 
 /**
+ * Función helper para formatear hora con rango
+ * @param {string} time - Hora en formato HH:mm (ej: "09:00")
+ * @returns {string} - Hora formateada con rango
+ */
+const formatTime = (time) => {
+  const timeRanges = {
+    '09:00': '9:00 AM - 11:00 AM',
+    '11:00': '11:00 AM - 1:00 PM',
+    '13:00': '1:00 PM - 3:00 PM',
+    '15:00': '3:00 PM - 5:00 PM',
+    '17:00': '5:00 PM - 7:00 PM'
+  };
+  return timeRanges[time] || time;
+};
+
+/**
  * Enviar correo de bienvenida al registrarse
  * @param {string} email - Correo del usuario
  * @param {string} nombre - Nombre del usuario
@@ -132,6 +148,9 @@ const sendWelcomeEmail = async (email, nombre) => {
 const sendOrderConfirmationEmail = async (email, nombre, orderData) => {
   try {
     const { orderId, items, subtotal, shippingCost, total, paymentMethod, deliveryInfo, fecha } = orderData;
+
+    // Debug: verificar deliveryInfo
+    console.log('📧 Enviando email con deliveryInfo:', deliveryInfo);
 
     // Generar HTML para los items
     const itemsHtml = items.map(item => `
@@ -284,12 +303,13 @@ const sendOrderConfirmationEmail = async (email, nombre, orderData) => {
               ${deliveryInfo ? `
               <h3 style="margin-top: 25px;">Información de Entrega</h3>
               <p><strong>Tipo de Entrega:</strong> ${deliveryInfo.shippingMethod === 'tienda' ? 'Recojo en Tienda' : 'Envío a Domicilio'}</p>
-              <p><strong>Fecha Estimada:</strong> ${new Date(deliveryInfo.deliveryDate).toLocaleDateString('es-PE', { 
+              <p><strong>Fecha de ${deliveryInfo.shippingMethod === 'tienda' ? 'Recojo' : 'Entrega'}:</strong> ${new Date(deliveryInfo.deliveryDate + 'T00:00:00').toLocaleDateString('es-PE', { 
                 weekday: 'long', 
                 year: 'numeric', 
                 month: 'long', 
                 day: 'numeric' 
               })}</p>
+              ${deliveryInfo.deliveryTime ? `<p><strong>Horario:</strong> ${formatTime(deliveryInfo.deliveryTime)}</p>` : ''}
               <p><strong>Receptor:</strong> ${deliveryInfo.recipientName}</p>
               <p><strong>DNI del Receptor:</strong> ${deliveryInfo.recipientDNI}</p>
               ${deliveryInfo.shippingMethod === 'envio' ? `<p><strong>Dirección de Entrega:</strong> ${deliveryInfo.deliveryAddress}</p>` : '<p><strong>Ubicación:</strong> Tienda principal H&M</p>'}

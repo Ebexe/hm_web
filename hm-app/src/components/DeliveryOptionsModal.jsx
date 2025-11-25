@@ -12,6 +12,7 @@ function DeliveryOptionsModal({
 }) {
   const [deliveryInfo, setDeliveryInfo] = useState({
     deliveryDate: '',
+    deliveryTime: '',
     recipientName: defaultName,
     recipientDNI: defaultDNI,
     deliveryAddress: defaultAddress
@@ -22,6 +23,7 @@ function DeliveryOptionsModal({
 
   useEffect(() => {
     if (show) {
+      console.log('🚚 Modal de entrega abierto');
       const suggested = getSuggestedDate(shippingMethod);
       const suggestedFormatted = suggested; // Ya está en formato ISO (YYYY-MM-DD)
       
@@ -31,6 +33,7 @@ function DeliveryOptionsModal({
       // Pre-llenar con datos del usuario
       setDeliveryInfo({
         deliveryDate: suggestedFormatted,
+        deliveryTime: '09:00',
         recipientName: defaultName,
         recipientDNI: defaultDNI,
         deliveryAddress: defaultAddress
@@ -66,8 +69,14 @@ function DeliveryOptionsModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('📋 Formulario de entrega enviado:', deliveryInfo);
     
     // Validaciones
+    if (!deliveryInfo.deliveryTime) {
+      alert('Por favor, seleccione una hora de entrega');
+      return;
+    }
+    
     if (!deliveryInfo.recipientName.trim()) {
       alert('Por favor, ingrese el nombre del receptor');
       return;
@@ -83,10 +92,12 @@ function DeliveryOptionsModal({
       return;
     }
     
-    onConfirm({
+    const finalDeliveryInfo = {
       ...deliveryInfo,
       shippingMethod
-    });
+    };
+    console.log('✅ Validaciones pasadas, confirmando entrega:', finalDeliveryInfo);
+    onConfirm(finalDeliveryInfo);
   };
 
   if (!show) return null;
@@ -130,6 +141,32 @@ function DeliveryOptionsModal({
                 month: 'long', 
                 day: 'numeric' 
               })}
+            </small>
+          </div>
+
+          {/* Hora de Entrega */}
+          <div className="form-group">
+            <label htmlFor="deliveryTime">
+              Hora de {shippingMethod === 'tienda' ? 'recojo' : 'entrega'} *
+            </label>
+            <select
+              id="deliveryTime"
+              name="deliveryTime"
+              value={deliveryInfo.deliveryTime}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Seleccione una hora</option>
+              <option value="09:00">9:00 AM - 11:00 AM</option>
+              <option value="11:00">11:00 AM - 1:00 PM</option>
+              <option value="13:00">1:00 PM - 3:00 PM</option>
+              <option value="15:00">3:00 PM - 5:00 PM</option>
+              <option value="17:00">5:00 PM - 7:00 PM</option>
+            </select>
+            <small className="help-text">
+              {shippingMethod === 'tienda' 
+                ? 'Horario de atención de tienda: 9:00 AM - 7:00 PM' 
+                : 'Seleccione el rango horario preferido para recibir su pedido'}
             </small>
           </div>
 

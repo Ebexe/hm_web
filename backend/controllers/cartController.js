@@ -156,7 +156,10 @@ const removeCartItem = async (req, res) => {
 const checkout = async (req, res) => {
     const id_usuario = req.user.id_usuario;
     // Recibimos los costos calculados, método de pago e información de entrega
-    const { shippingCost, total, paymentMethod, deliveryInfo } = req.body; 
+    const { shippingCost, total, paymentMethod, deliveryInfo } = req.body;
+    
+    // Debug: verificar deliveryInfo recibido
+    console.log('🛒 Checkout recibió deliveryInfo:', deliveryInfo);
     
     // Obtenemos una conexión del pool para manejar la transacción
     let connection;

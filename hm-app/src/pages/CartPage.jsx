@@ -144,12 +144,14 @@ function CartPage() {
         setIsProcessing(false);
         
         // Cerrar modal de pago y abrir modal de entrega
+        console.log('💳 Pago confirmado, abriendo modal de entrega...');
         setShowPaymentModal(false);
         setShowDeliveryModal(true);
     };
 
     // Handler para confirmar opciones de entrega
     const handleDeliveryConfirm = async (delivery) => {
+        console.log('📦 Entrega confirmada con info:', delivery);
         setDeliveryInfo(delivery);
         setShowDeliveryModal(false);
         setIsProcessing(true);
