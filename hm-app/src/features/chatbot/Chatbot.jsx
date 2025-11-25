@@ -200,6 +200,39 @@ const categoryKeywords = {
 const formalKeywords = ['blazer', 'saco', 'suit', 'terno', 'vestir', 'formal', 'elegante', 'dress', 'oxford', 'derby', 'loafer', 'wedding', 'boda', 'monk'];
 const casualKeywords = ['sport', 'athletic', 'gym', 'training', 'workout', 'jogger', 'hoodie', 'sneaker', 'casual', 'thong', 'bodysuit', 'tank', 'drymove', 'mesh', 'boot', 'boots', 'walking', 'hiking', 'trail', 'outdoor', 'sandal', 'flip-flop', 'slipper'];
 
+// Función para limpiar la respuesta del bot (remover JSON, símbolos innecesarios)
+const cleanBotResponse = (text) => {
+  if (!text) return '';
+  let cleaned = text;
+  
+  // 1. Remover bloques de código con backticks (```json ... ``` o ``` ... ```)
+  cleaned = cleaned.replace(/```[\s\S]*?```/g, '');
+  
+  // 2. Remover bloque ###PRODUCTS### si aún queda (con o sin contenido)
+  cleaned = cleaned.replace(/###PRODUCTS###[\s\S]*?###END_PRODUCTS###/g, '');
+  
+  // 3. Remover cualquier ### que quede suelto (líneas que empiecen con ###)
+  cleaned = cleaned.replace(/^###.*$/gm, '');
+  
+  // 4. Remover etiquetas OCASION_DETECTADA:[...]
+  cleaned = cleaned.replace(/OCASION_DETECTADA:\[.*?\]/g, '');
+  
+  // 5. Remover símbolos de markdown innecesarios al inicio de línea
+  cleaned = cleaned.replace(/^\*\*\*+\s*/gm, '');
+  
+  // 6. Limpiar múltiples saltos de línea (dejar máximo 2)
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+  
+  // 7. Limpiar líneas vacías consecutivas
+  cleaned = cleaned.replace(/^\s*[\r\n]/gm, '\n');
+  
+  // 8. Limpiar espacios al inicio y final
+  cleaned = cleaned.trim();
+  
+  return cleaned;
+};
+
+
 const guessCategory = (prod) => {
   const text = (
     (prod.categoria||'') + ' ' + 
@@ -747,6 +780,7 @@ function Chatbot() {
 
             // Mostrar resultado final
             visibleText = aiRes.replace(jsonRegex, '').trim();
+            visibleText = cleanBotResponse(visibleText); // ⭐ Limpiar respuesta antes de mostrar
             setMessages(prev => [
               ...prev.filter(m => !m.typing),
               { sender: 'bot', text: visibleText, recommendations: recommendedProducts }
@@ -989,9 +1023,10 @@ function Chatbot() {
 
             console.log(`[Auto re-invoke AI] IA devolvió ${recommendedProducts.length} productos. Mostrando resultado final.`);
             // Mostrar resultado al usuario
+            visibleText = cleanBotResponse(visibleText || 'Aquí tienes más opciones:'); // ⭐ Limpiar respuesta
             setMessages(prev => [
               ...prev.filter(m => !m.typing),
-              { sender: 'bot', text: visibleText || 'Aquí tienes más opciones:', recommendations: recommendedProducts }
+              { sender: 'bot', text: visibleText, recommendations: recommendedProducts }
             ]);
             // reset counter y finalizar loading
             setAssistantAutoFetchCount(0);
@@ -1328,6 +1363,7 @@ function Chatbot() {
             return;
           }
 
+          visibleText = cleanBotResponse(visibleText); // ⭐ Limpiar respuesta antes de mostrar
           setMessages((prev) => [
             ...prev.filter(m => !m.typing), 
             { 
