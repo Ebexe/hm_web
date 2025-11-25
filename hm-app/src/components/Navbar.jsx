@@ -62,7 +62,7 @@ function Navbar() {
 
           {/* PERFIL (logueado) / LOGIN (no logueado) */}
           {auth.token ? (
-            <Link to="/profile" className="icon-btn" data-tooltip="Mi perfil">
+            <Link to="/perfil" className="icon-btn" data-tooltip="Mi perfil">
               <User size={24} strokeWidth={1.7} />
             </Link>
           ) : (

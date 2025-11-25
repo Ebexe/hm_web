@@ -40,8 +40,10 @@ export const AuthProvider = ({ children }) => {
   const register = async (nombre, email, password) => {
     try {
       const data = await apiRegister(nombre, email, password);
-      // Opcional: auto-login después de registrar
-      // await login(email, password); 
+      
+      // Auto-login después de registrar exitosamente
+      await login(email, password);
+      
       return data; // Devuelve el mensaje de éxito
     } catch (error) {
       console.error("Error en register (Context):", error);

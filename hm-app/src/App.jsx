@@ -27,7 +27,7 @@ function App() {
         <Route path="ninas" element={<NinasPage />} /> 
         <Route path="registro" element={<RegisterPage />} /> 
         <Route path="login" element={<LoginPage />} />
-        <Route path="profile" element={<ProfilePage />} /> 
+        <Route path="perfil" element={<ProfilePage />} /> 
         
         <Route path="producto/:productId" element={<ProductDetailPage />} />
         <Route path="carrito" element={<CartPage />} />
