@@ -452,7 +452,7 @@ function ProfilePage() {
               </fieldset>
 
               {/* --- Sección 6. Medidas Específicas --- */}
-              <h4>6. Medidas Específicas (Opcional)</h4>
+              <h4>7. Medidas Específicas (Opcional)</h4>
               <div className="tallas-grid">
                 <label> Pecho (cm) <input type="number" step="0.1" name="pecho_cm" value={profileData.pecho_cm} onChange={handleChange} /></label>
                 <label> Cintura (cm) <input type="number" step="0.1" name="cintura_cm" value={profileData.cintura_cm} onChange={handleChange} /></label>
